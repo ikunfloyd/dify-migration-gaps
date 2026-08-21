@@ -1,0 +1,331 @@
+#!/usr/bin/env python3
+"""
+Reproduce: importing a workflow-app DSL into a different tenant silently drops the
+knowledge-retrieval node's dataset_ids.
+
+Runs entirely over the console HTTP API of a locally booted Dify v1.16.0 stack.
+Writes a machine-readable evidence bundle; prints a human-readable trace.
+
+Design notes that matter for the credibility of the output:
+
+  * Two negative controls are mandatory, not optional. Control 1 (same tenant, same
+    bytes) rules out "the export was already broken". Control 2 (plaintext id, cross
+    tenant) rules out "the target tenant filtered a foreign dataset" — it shows the id
+    survives when it is readable, so the drop is attributable to decryption failure and
+    nothing else.
+  * Evidence is raw JSON from the API. A screenshot of an empty node cannot distinguish
+    a dropped id from a surviving-but-unresolvable one.
+  * Tenant UUIDs and ciphertext are never written to the bundle together. The AES key is
+    sha256(tenant_id), so publishing both would let a reader recover the dataset UUID.
+
+Usage:
+    python3 repro_kr_dataset_drop.py \
+        --base http://127.0.0.1:18091 \
+        --email-a a@example.invalid --password-a ... \
+        --email-b b@example.invalid --password-b ... \
+        --out ../evidence
+"""
+
+from __future__ import annotations
+
+import argparse
+import base64
+import hashlib
+import http.cookiejar
+import json
+import pathlib
+import re
+import sys
+import urllib.error
+import urllib.request
+from datetime import datetime, timezone
+from typing import Any
+
+DSL_VERSION = "0.7.0"  # api/constants/dsl_version.py:1 @ 5c6372d
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def sha256(text: str) -> str:
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
+def redact_id(value: str) -> str:
+    """Tenant/dataset UUIDs appear only as a short prefix plus a hash."""
+    return f"{value[:8]}…(sha256:{sha256(value)[:12]})"
+
+
+class Console:
+    """Cookie + CSRF console client. Dify 1.16 returns tokens as cookies, not in the body."""
+
+    def __init__(self, base: str, label: str) -> None:
+        self.base = base.rstrip("/")
+        self.label = label
+        self.jar = http.cookiejar.CookieJar()
+        self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.jar))
+
+    def _csrf(self) -> str | None:
+        for c in self.jar:
+            if c.name == "csrf_token":
+                return c.value
+        return None
+
+    def call(self, method: str, path: str, payload: Any = None) -> tuple[int, Any]:
+        url = f"{self.base}{path}"
+        body = json.dumps(payload).encode() if payload is not None else None
+        req = urllib.request.Request(url, data=body, method=method)
+        req.add_header("Content-Type", "application/json")
+        token = self._csrf()
+        if token:
+            req.add_header("X-CSRF-Token", token)
+        try:
+            with self.opener.open(req, timeout=120) as resp:
+                raw = resp.read().decode()
+                status = resp.status
+        except urllib.error.HTTPError as e:
+            raw = e.read().decode()
+            status = e.code
+        try:
+            return status, json.loads(raw)
+        except json.JSONDecodeError:
+            return status, raw
+
+    def login(self, email: str, password: str) -> None:
+        # Password is base64-encoded, not encrypted: libs/encryption.py says so in its docstring.
+        encoded = base64.b64encode(password.encode()).decode()
+        status, body = self.call(
+            "POST",
+            "/console/api/login",
+            {"email": email, "password": encoded, "language": "en-US", "remember_me": True},
+        )
+        if status != 200 or (isinstance(body, dict) and body.get("result") != "success"):
+            raise SystemExit(f"[{self.label}] login failed: HTTP {status} {body}")
+
+    def tenant_id(self) -> str:
+        # /console/api/workspaces/current is POST-only in 1.16; the list endpoint marks the
+        # active one with "current": true.
+        status, body = self.call("GET", "/console/api/workspaces")
+        if status != 200:
+            raise SystemExit(f"[{self.label}] cannot list workspaces: HTTP {status} {body}")
+        for ws in body.get("workspaces", []):
+            if ws.get("current"):
+                return ws["id"]
+        raise SystemExit(f"[{self.label}] no current workspace in {body}")
+
+
+def source_dsl(dataset_id: str, app_name: str) -> str:
+    """Minimal workflow app whose only interesting content is one knowledge-retrieval node."""
+    graph = {
+        "nodes": [
+            {
+                "id": "start",
+                "type": "custom",
+                "position": {"x": 0, "y": 0},
+                "data": {"type": "start", "title": "Start", "variables": []},
+            },
+            {
+                "id": "kr",
+                "type": "custom",
+                "position": {"x": 300, "y": 0},
+                "data": {
+                    "type": "knowledge-retrieval",
+                    "title": "Knowledge Retrieval",
+                    "dataset_ids": [dataset_id],
+                    "retrieval_mode": "multiple",
+                    "query_variable_selector": ["start", "sys.query"],
+                    "multiple_retrieval_config": {
+                        "top_k": 2,
+                        "score_threshold": None,
+                        "reranking_mode": "weighted_score",
+                        "reranking_enable": False,
+                    },
+                },
+            },
+            {
+                "id": "end",
+                "type": "custom",
+                "position": {"x": 600, "y": 0},
+                "data": {"type": "end", "title": "End", "outputs": []},
+            },
+        ],
+        "edges": [
+            {"id": "e1", "source": "start", "target": "kr", "data": {"sourceType": "start", "targetType": "knowledge-retrieval"}},
+            {"id": "e2", "source": "kr", "target": "end", "data": {"sourceType": "knowledge-retrieval", "targetType": "end"}},
+        ],
+        "viewport": {"x": 0, "y": 0, "zoom": 1},
+    }
+    doc = {
+        "version": DSL_VERSION,
+        "kind": "app",
+        "app": {
+            "name": app_name,
+            "mode": "workflow",
+            "icon": "\U0001f916",
+            "icon_background": "#FFEAD5",
+            "description": "single knowledge-retrieval node; nothing else",
+            "use_icon_as_answer_icon": False,
+        },
+        "workflow": {
+            "graph": graph,
+            "features": {},
+            "environment_variables": [],
+            "conversation_variables": [],
+        },
+    }
+    # Emitted as JSON: YAML is a superset of JSON, and this avoids depending on PyYAML.
+    return json.dumps(doc, ensure_ascii=False, indent=2)
+
+
+def import_app(client: Console, yaml_text: str, note: str) -> dict[str, Any]:
+    status, body = client.call(
+        "POST", "/console/api/apps/imports", {"mode": "yaml-content", "yaml_content": yaml_text}
+    )
+    print(f"  [{note}] import -> HTTP {status} status={body.get('status') if isinstance(body, dict) else body!r}")
+    if status not in (200, 201) or not isinstance(body, dict):
+        raise SystemExit(f"import failed ({note}): HTTP {status} {body}")
+    return body
+
+
+def draft_dataset_ids(client: Console, app_id: str) -> tuple[list[str], dict[str, Any]]:
+    status, body = client.call("GET", f"/console/api/apps/{app_id}/workflows/draft")
+    if status != 200 or not isinstance(body, dict):
+        raise SystemExit(f"cannot read draft workflow: HTTP {status} {body}")
+    for node in body.get("graph", {}).get("nodes", []):
+        if node.get("data", {}).get("type") == "knowledge-retrieval":
+            return list(node["data"].get("dataset_ids", [])), node["data"]
+    raise SystemExit("no knowledge-retrieval node in the imported draft graph")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--base", required=True)
+    ap.add_argument("--email-a", required=True)
+    ap.add_argument("--password-a", required=True)
+    ap.add_argument("--email-b", required=True)
+    ap.add_argument("--password-b", required=True)
+    ap.add_argument("--out", required=True)
+    args = ap.parse_args()
+
+    ev: dict[str, Any] = {"started_at": now(), "base": args.base, "dsl_version": DSL_VERSION, "steps": []}
+
+    def record(name: str, **fields: Any) -> None:
+        ev["steps"].append({"step": name, "at": now(), **fields})
+        print(f"[{now()}] {name}")
+
+    a = Console(args.base, "A")
+    b = Console(args.base, "B")
+    a.login(args.email_a, args.password_a)
+    b.login(args.email_b, args.password_b)
+    ta, tb = a.tenant_id(), b.tenant_id()
+    if ta == tb:
+        raise SystemExit("tenant A and tenant B are the same tenant — the experiment is void")
+    record("logged-in", tenant_a=redact_id(ta), tenant_b=redact_id(tb), tenants_differ=True)
+
+    # --- source material in tenant A -------------------------------------------------
+    status, ds = a.call("POST", "/console/api/datasets", {"name": f"kbA-{now()}", "indexing_technique": "economy"})
+    if status not in (200, 201):
+        raise SystemExit(f"dataset creation failed: HTTP {status} {ds}")
+    dataset_id = ds["id"]
+    record(
+        "dataset-created-in-A",
+        dataset_id=redact_id(dataset_id),
+        indexing_technique=ds.get("indexing_technique"),
+        embedding_model=ds.get("embedding_model"),
+        note="economy indexing: no embedding-model credentials required",
+    )
+
+    src = source_dsl(dataset_id, "kr-source")
+    app_a = import_app(a, src, "A: create source app")
+    ids_a0, _ = draft_dataset_ids(a, app_a["app_id"])
+    record(
+        "source-app-in-A",
+        app_id=redact_id(app_a["app_id"]),
+        import_status=app_a.get("status"),
+        dataset_ids_bound=[redact_id(i) for i in ids_a0],
+        matches_dataset=ids_a0 == [dataset_id],
+    )
+    if ids_a0 != [dataset_id]:
+        raise SystemExit("the source app did not actually bind the dataset — nothing downstream is meaningful")
+
+    # --- export once; every later step reuses these exact bytes ----------------------
+    status, exported = a.call("GET", f"/console/api/apps/{app_a['app_id']}/export")
+    if status != 200:
+        raise SystemExit(f"export failed: HTTP {status} {exported}")
+    yaml_text = exported["data"]
+    m = re.search(r"dataset_ids:\s*\n\s*-\s*(\S+)", yaml_text)
+    ciphertext = m.group(1).strip("'\"") if m else None
+    encrypted = bool(ciphertext) and ciphertext != dataset_id
+    record(
+        "exported-from-A",
+        yaml_sha256=sha256(yaml_text),
+        yaml_bytes=len(yaml_text),
+        dataset_ids_ciphertext_len=len(ciphertext) if ciphertext else None,
+        dataset_ids_is_ciphertext=encrypted,
+        note="ciphertext value itself deliberately not recorded: key is sha256(tenant_id)",
+    )
+    if not encrypted:
+        raise SystemExit(
+            "exported dataset_ids is not ciphertext — DSL_EXPORT_ENCRYPT_DATASET_ID must be off; run is void"
+        )
+
+    # --- control 1: same bytes, same tenant ------------------------------------------
+    ctl1 = import_app(a, yaml_text, "control 1: A -> A")
+    ids_ctl1, _ = draft_dataset_ids(a, ctl1["app_id"])
+    record(
+        "control-1-same-tenant",
+        import_status=ctl1.get("status"),
+        warnings=ctl1.get("warnings", []),
+        dataset_ids=[redact_id(i) for i in ids_ctl1],
+        preserved=ids_ctl1 == [dataset_id],
+        proves="the exported artifact is intact; the only variable left is the tenant",
+    )
+
+    # --- the reproduction: same bytes, different tenant ------------------------------
+    exp = import_app(b, yaml_text, "experiment: A -> B")
+    ids_exp, kr_data = draft_dataset_ids(b, exp["app_id"])
+    record(
+        "experiment-cross-tenant",
+        import_status=exp.get("status"),
+        warnings=exp.get("warnings", []),
+        error=exp.get("error", ""),
+        dataset_ids=ids_exp,
+        dropped=ids_exp == [],
+        reported=bool(exp.get("warnings")) or exp.get("status") == "completed-with-warnings",
+        proves="reference vanished; import reported success with an empty warnings list",
+    )
+
+    # --- control 2: plaintext id, different tenant -----------------------------------
+    plain = yaml_text.replace(ciphertext, dataset_id)
+    ctl2 = import_app(b, plain, "control 2: plaintext -> B")
+    ids_ctl2, _ = draft_dataset_ids(b, ctl2["app_id"])
+    record(
+        "control-2-plaintext-cross-tenant",
+        import_status=ctl2.get("status"),
+        warnings=ctl2.get("warnings", []),
+        dataset_ids=[redact_id(i) for i in ids_ctl2],
+        preserved=ids_ctl2 == [dataset_id],
+        proves=(
+            "a readable id survives into a tenant that does not own it — so the drop is caused by "
+            "decryption failure, not by any dataset-existence or tenant-scope check"
+        ),
+    )
+
+    ev["finished_at"] = now()
+    ev["verdict"] = {
+        "silently_dropped": ids_exp == [] and not exp.get("warnings") and exp.get("status") == "completed",
+        "control_1_preserved": ids_ctl1 == [dataset_id],
+        "control_2_preserved": ids_ctl2 == [dataset_id],
+    }
+
+    out = pathlib.Path(args.out).expanduser()
+    out.mkdir(parents=True, exist_ok=True)
+    dest = out / f"kr-dataset-drop-{ev['started_at'].replace(':', '')}.json"
+    dest.write_text(json.dumps(ev, indent=2, ensure_ascii=False))
+    print(f"\nverdict: {json.dumps(ev['verdict'])}\nevidence: {dest}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
