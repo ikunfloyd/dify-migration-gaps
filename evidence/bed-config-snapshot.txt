@@ -1,0 +1,10 @@
+# effective container environment, captured 2026-08-21T18:00:07Z
+# command: docker exec dify-oss-bed-api-1 env | grep -E '^(DSL_EXPORT_ENCRYPT_DATASET_ID|ALLOW_REGISTER|ALLOW_CREATE_WORKSPACE)='
+ALLOW_CREATE_WORKSPACE=true
+ALLOW_REGISTER=true
+# DSL_EXPORT_ENCRYPT_DATASET_ID absent above = never set in the environment; the app therefore uses
+# its declared default True (api/configs/feature/__init__.py:1210-1213)
+# image:
+
+langgenius/dify-api:1.16.0
+Id=sha256:bd3e8b15cfc47e89dc7a0d17431e6f3289244f4b442b96e2372bd0f0646f3d58

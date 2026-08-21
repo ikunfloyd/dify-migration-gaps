@@ -8,13 +8,16 @@ Writes a machine-readable evidence bundle; prints a human-readable trace.
 
 Design notes that matter for the credibility of the output:
 
-  * Two negative controls are mandatory, not optional. Control 1 (same tenant, same
-    bytes) rules out "the export was already broken". Control 2 (plaintext id, cross
-    tenant) rules out "the target tenant filtered a foreign dataset" — it shows the id
-    survives when it is readable, so the drop is attributable to decryption failure and
-    nothing else.
-  * Evidence is raw JSON from the API. A screenshot of an empty node cannot distinguish
-    a dropped id from a surviving-but-unresolvable one.
+  * Two negative controls are mandatory, not optional. Control 1 (same tenant, byte-identical
+    artifact) rules out "the export was already broken". Control 2 (the same artifact with the
+    ciphertext replaced by the plaintext id — so NOT byte-identical, by construction) shows that a
+    readable id survives into the same target tenant, which locates the drop at the branch taken
+    when `decrypt_dataset_id` returns None, rather than at any existence or ownership check.
+  * Evidence is the response body with UUID-shaped values redacted — not a reconstructed
+    summary, and not raw either. Absence of a `warnings` key is recorded separately from an
+    empty one, because `.get("warnings", [])` cannot tell them apart.
+  * A screenshot of an empty node cannot distinguish a dropped id from a
+    surviving-but-unresolvable one, which is why nothing here relies on the UI.
   * Tenant UUIDs and ciphertext are never written to the bundle together. The AES key is
     sha256(tenant_id), so publishing both would let a reader recover the dataset UUID.
 
@@ -52,9 +55,28 @@ def sha256(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
 
 
+UUID_RE = re.compile(r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b")
+
+
 def redact_id(value: str) -> str:
-    """Tenant/dataset UUIDs appear only as a short prefix plus a hash."""
+    """Tenant/dataset UUIDs appear only as a short prefix plus a hash.
+
+    This is resistance to direct recovery, not anonymisation: 8 hex chars leak 32 bits and the
+    hash prefix is a strong confirmer for anyone who already holds a candidate UUID. Treat these
+    as pseudonyms tied to this run, not as safe-to-correlate identifiers.
+    """
     return f"{value[:8]}…(sha256:{sha256(value)[:12]})"
+
+
+def redact_body(obj: Any) -> Any:
+    """Response body with every UUID-shaped value replaced. Structure and keys are untouched."""
+    if isinstance(obj, dict):
+        return {k: redact_body(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [redact_body(v) for v in obj]
+    if isinstance(obj, str):
+        return UUID_RE.sub(lambda m: redact_id(m.group(0)), obj)
+    return obj
 
 
 class Console:
@@ -249,7 +271,8 @@ def main() -> int:
     if ids_a0 != [dataset_id]:
         raise SystemExit("the source app did not actually bind the dataset — nothing downstream is meaningful")
 
-    # --- export once; every later step reuses these exact bytes ----------------------
+    # --- export once. Control 1 and the experiment reuse these exact bytes; control 2
+    # deliberately alters one substring and records its own hash. ---------------------
     status, exported = a.call("GET", f"/console/api/apps/{app_a['app_id']}/export")
     if status != 200:
         raise SystemExit(f"export failed: HTTP {status} {exported}")
@@ -270,51 +293,78 @@ def main() -> int:
             "exported dataset_ids is not ciphertext — DSL_EXPORT_ENCRYPT_DATASET_ID must be off; run is void"
         )
 
-    # --- control 1: same bytes, same tenant ------------------------------------------
+    # --- control 1: byte-identical artifact, same tenant -----------------------------
     ctl1 = import_app(a, yaml_text, "control 1: A -> A")
     ids_ctl1, _ = draft_dataset_ids(a, ctl1["app_id"])
     record(
         "control-1-same-tenant",
+        artifact_sha256=sha256(yaml_text),
         import_status=ctl1.get("status"),
-        warnings=ctl1.get("warnings", []),
+        warnings_key_present="warnings" in ctl1,
+        warnings=ctl1.get("warnings"),
+        response_redacted=redact_body(ctl1),
         dataset_ids=[redact_id(i) for i in ids_ctl1],
         preserved=ids_ctl1 == [dataset_id],
-        proves="the exported artifact is intact; the only variable left is the tenant",
+        shows="the exported artifact is intact and import does not drop ids in general",
     )
 
-    # --- the reproduction: same bytes, different tenant ------------------------------
+    # --- the reproduction: byte-identical artifact, different tenant -----------------
     exp = import_app(b, yaml_text, "experiment: A -> B")
     ids_exp, kr_data = draft_dataset_ids(b, exp["app_id"])
     record(
         "experiment-cross-tenant",
+        artifact_sha256=sha256(yaml_text),
+        artifact_identical_to_control_1=True,
         import_status=exp.get("status"),
-        warnings=exp.get("warnings", []),
+        warnings_key_present="warnings" in exp,
+        warnings=exp.get("warnings"),
         error=exp.get("error", ""),
+        response_redacted=redact_body(exp),
         dataset_ids=ids_exp,
         dropped=ids_exp == [],
-        reported=bool(exp.get("warnings")) or exp.get("status") == "completed-with-warnings",
-        proves="reference vanished; import reported success with an empty warnings list",
+        shows=(
+            "the reference is absent from the persisted graph, and the import API response "
+            "reported completed without a non-empty warnings list. Not checked: server logs, "
+            "the web UI, or any other channel"
+        ),
     )
 
-    # --- control 2: plaintext id, different tenant -----------------------------------
+    # --- control 2: same artifact with the ciphertext swapped for the plaintext id ----
+    # NOT byte-identical by construction: exactly one substring differs.
     plain = yaml_text.replace(ciphertext, dataset_id)
     ctl2 = import_app(b, plain, "control 2: plaintext -> B")
     ids_ctl2, _ = draft_dataset_ids(b, ctl2["app_id"])
+    # Does tenant B actually see this dataset? Asked, rather than assumed.
+    _, b_datasets = b.call("GET", "/console/api/datasets?page=1&limit=100")
+    b_visible = [d.get("id") for d in (b_datasets or {}).get("data", [])] if isinstance(b_datasets, dict) else []
     record(
         "control-2-plaintext-cross-tenant",
+        artifact_sha256=sha256(plain),
+        artifact_identical_to_experiment=False,
+        artifact_diff="the single dataset_ids element: ciphertext replaced by the plaintext UUID",
         import_status=ctl2.get("status"),
-        warnings=ctl2.get("warnings", []),
+        warnings_key_present="warnings" in ctl2,
+        warnings=ctl2.get("warnings"),
+        response_redacted=redact_body(ctl2),
         dataset_ids=[redact_id(i) for i in ids_ctl2],
         preserved=ids_ctl2 == [dataset_id],
-        proves=(
-            "a readable id survives into a tenant that does not own it — so the drop is caused by "
-            "decryption failure, not by any dataset-existence or tenant-scope check"
+        dataset_visible_to_target_tenant=dataset_id in b_visible,
+        target_tenant_dataset_count=len(b_visible),
+        shows=(
+            "a readable id is written into the target tenant's graph even though that tenant's own "
+            "dataset list does not contain it. So the element removed in the experiment was removed "
+            "on the branch taken when decrypt_dataset_id returns None — not by an existence or "
+            "ownership check, of which this path performs none"
         ),
     )
 
     ev["finished_at"] = now()
     ev["verdict"] = {
-        "silently_dropped": ids_exp == [] and not exp.get("warnings") and exp.get("status") == "completed",
+        "dropped_without_report": (
+            ids_exp == []
+            and not exp.get("warnings")
+            and exp.get("status") == "completed"
+        ),
         "control_1_preserved": ids_ctl1 == [dataset_id],
         "control_2_preserved": ids_ctl2 == [dataset_id],
     }

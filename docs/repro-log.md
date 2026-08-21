@@ -5,11 +5,17 @@
 > gets written here as an absolute date. If no maintainer has responded substantively by then, code
 > investment stops, the analysis is published as-is, and the line is closed.* Earliest date an issue
 > may be opened: **2026-09-02** (no public activity within two weeks either side of a relocation —
-> the upstream stale bot closes an issue after 15 days of inactivity plus a 3-day grace period, so an
-> issue opened during a low-availability window gets closed underneath you).
+> upstream's stale workflow closes an issue after 15 days of inactivity plus a 3-day grace period
+> [`.github/workflows/stale.yml` at the pinned commit; an externally-controlled setting that may have
+> changed since], so an issue opened during a low-availability window gets closed underneath you).
+> Note the consequence: a 21-day kill date fires *after* the bot may already have closed the issue,
+> so the internal decision point sits around day 14.
 
-Append-only. Each entry is timestamped at the moment it happened, not reconstructed afterwards.
-Failures stay in. A log with no failures in it is a log that was written after the fact.
+Append-only, written during the session it describes. Timestamps come from the commands
+themselves (`date -u`, container clocks, the driver script's own clock) rather than from memory —
+but a reader has no way to verify that from the repository alone, so treat them as the author's
+record, not as attested time. Failures stay in: the two failed tenant-creation attempts below are
+the reason the flag disclosure exists at all.
 
 ## Conventions
 
@@ -17,7 +23,10 @@ Failures stay in. A log with no failures in it is a log that was written after t
   Compose project, isolated from anything else on the machine. No modifications to upstream images.
 - Every assertion is either an observation (something a command printed) or an anchor
   (`path:line` at the pinned commit). Inferences are labelled as such inline.
-- Raw artifacts land in `evidence/` and are referenced by filename, not pasted inline.
+- The experiment's response bodies land in `evidence/` with UUID-shaped values replaced by a
+  prefix-plus-hash pseudonym; structure and keys are untouched. They are neither raw nor a
+  reconstruction. Steps outside the driver script (boot, tenant creation) are recorded here in
+  prose, with the config snapshot in `evidence/bed-config-snapshot.txt`.
 
 ---
 
@@ -53,21 +62,34 @@ docstring is explicit that this is obfuscation, not encryption
 
 Both are needed, for different reasons: `create_account` raises `AccountNotFound` when registration
 is disabled (`api/services/account_service.py:438-441`), and tenant creation is separately gated
-(`:1328-1333`). A stock 1.16 stack cannot produce a second tenant at all — there is no console
-endpoint for it and `/console/api/setup` is one-shot.
+(`:1328-1333`). No console endpoint for creating a workspace was found among the routes read in
+`api/controllers/console/workspace/workspace.py`, and `/console/api/setup` is one-shot — so on a
+stock stack there is no route to a second tenant *that this survey found*. Other supported entry
+points were not exhaustively enumerated.
 
 **Disclosure.** The bed therefore runs with two non-default flags: `ALLOW_REGISTER=true`,
 `ALLOW_CREATE_WORKSPACE=true`. Neither is read anywhere on the import path under test; they gate
-account registration and workspace creation only. `DSL_EXPORT_ENCRYPT_DATASET_ID` was left unset and
-is therefore `true` (its default, and the shipped value).
+account registration and workspace creation only. `DSL_EXPORT_ENCRYPT_DATASET_ID` is **absent from
+the container environment**, so the app uses its declared default of `True`
+(`api/configs/feature/__init__.py:1210-1213`). Captured, rather than asserted:
+`evidence/bed-config-snapshot.txt` holds the `env` output and the image id.
 
-## 17:50:12Z — The experiment
+## 17:50:12Z / 18:00:18Z — The experiment, run twice
 
 One dataset, one workflow app with a single `knowledge-retrieval` node, one export, three imports.
-Driver: `scripts/repro_kr_dataset_drop.py`. Raw output: `evidence/kr-dataset-drop-2026-08-21T175012Z.json`.
+Driver: `scripts/repro_kr_dataset_drop.py`.
 
-Exported artifact: **1636 bytes, sha256 `4bed143f0da7…`**. The same bytes were used for all three
-imports; nothing was hand-edited except where control 2 says so.
+Run once at 17:50:12Z, then **re-run at 18:00:18Z after an external review of the first bundle**.
+The first run recorded `warnings` via `.get("warnings", [])`, which cannot distinguish an empty
+array from a missing key, and it asserted rather than checked whether the target tenant could see
+the surviving dataset. Both were fixed in the driver and the run repeated; only the second bundle is
+kept, because the first one cannot support the sentences written about it. Results were identical
+where the two overlap. Evidence: `evidence/kr-dataset-drop-2026-08-21T180018Z.json`.
+
+Control 1 and the experiment used the **byte-identical** exported artifact. Control 2 by
+construction did not: exactly one substring differs (the single `dataset_ids` element, ciphertext
+replaced by the plaintext UUID), and it carries its own sha256 in the evidence bundle. Each run's
+artifact hash is recorded alongside it.
 
 | Run | Tenant | `dataset_ids` value sent | Import status | `warnings` | Persisted `dataset_ids` |
 |---|---|---|---|---|---|
@@ -79,20 +101,30 @@ imports; nothing was hand-edited except where control 2 says so.
 What each row rules out:
 
 - **Control 1** — the exported artifact is not corrupt, and import does not drop dataset ids in
-  general. The only variable left is the tenant.
-- **Experiment** — the reference is gone, and the API reported `status: "completed"` with an empty
-  `warnings` array. Nothing anywhere told the caller that something was discarded. This is the
-  finding.
-- **Control 2** — the same target tenant, same app shape, but a *readable* id: it survives, and the
-  imported app now holds a dataset id belonging to a tenant that is not its own. So the drop is
-  attributable to decryption failing, and to nothing else — no existence check and no tenant-scope
-  filter runs on this path. (It also means the plaintext branch persists dangling foreign
-  references, which is a separate observation, not the one being reported.)
+  general. What differs between this row and the experiment is the target tenant — together with
+  everything that necessarily travels with it (the acting account, that tenant's workspace state).
+  The source anchors, not this row alone, are what narrow the cause to the tenant-keyed decrypt.
+- **Experiment** — the reference is gone from the persisted graph, and the import API response
+  carried `status: "completed"` with an explicitly present, empty `warnings` array
+  (`warnings_key_present: true` — an absent key would be a different and weaker observation). So
+  *the import API response* said nothing about the discard. Server logs, the web UI and any other
+  channel were not examined, and no claim is made about them. This is the finding.
+- **Control 2** — same target tenant, same app shape, but a *readable* id: it survives into B's
+  persisted graph while B's own dataset list is empty (`dataset_visible_to_target_tenant: false`,
+  `target_tenant_dataset_count: 0`). So the element removed in the experiment was removed on the
+  branch taken when `decrypt_dataset_id` returns `None` — not by an existence or ownership check,
+  because this path performs none. (Note what this does *not* say: it does not isolate *why*
+  decryption returned `None` — bad base64, padding, or a non-UUID result would all land in the same
+  branch — and it does not argue that persisting a dangling foreign id is correct behaviour.)
 
-Expected behaviour, for the record, is **not** "the import should fail". It is: when references are
-discarded, say so. Upstream's own Agent path does exactly that for the same situation
-(`api/services/agent/dsl_service.py:530-544`), using warning machinery that is already wired up in
-the very file where the drop happens (`app_dsl_service.py:529`, `:708-711`).
+Expected behaviour, for the record, is **not** "the import should fail", and not that the reference
+should be restored, kept, or checked for existence. It is narrower: when a non-empty input element
+is omitted, say so. The Agent path is cited only as proof that the structured-warning channel
+already exists and is already used for unresolvable references
+(`api/services/agent/dsl_service.py:530-544`) — its mechanism is *not* the same one (it holds
+plaintext ids and queries the target tenant, so it knows the resource is genuinely missing; this
+path only knows that a value would not decode). The machinery it uses is wired up in the very file
+where the drop happens (`app_dsl_service.py:529`, `:708-711`).
 
 Not tested: what the node does at execution time with an empty `dataset_ids`. No claim is made
 about it.
