@@ -1,0 +1,65 @@
+{
+  "started_at": "2026-09-04T08:41:19Z",
+  "base": "http://127.0.0.1:18091",
+  "steps": [
+    {
+      "step": "logged-in",
+      "at": "2026-09-04T08:41:19Z",
+      "tenant_c": "2de113e5…(sha256:e04c126156db)",
+      "tenant_d": "9c9a099d…(sha256:54f2bac06ad7)",
+      "tenants_differ": true
+    },
+    {
+      "step": "dataset-created-in-C",
+      "at": "2026-09-04T08:41:19Z",
+      "dataset_id": "7b6cc838…(sha256:ca3c6ac0e67b)"
+    },
+    {
+      "step": "source-app-in-C",
+      "at": "2026-09-04T08:41:19Z",
+      "app_id": "56a6b04d…(sha256:5f06e1d7bd15)",
+      "node_id": "kr",
+      "dataset_ids_bound": [
+        "7b6cc838…(sha256:ca3c6ac0e67b)"
+      ]
+    },
+    {
+      "step": "exported-from-C",
+      "at": "2026-09-04T08:41:19Z",
+      "yaml_sha256": "df510ef1894b63f43730c445cf1dc47f3140d9a0785073606eb7e4b318ada8ae"
+    },
+    {
+      "step": "cross-tenant-import-into-D",
+      "at": "2026-09-04T08:41:19Z",
+      "app_id": "de6ea7d1…(sha256:bae810395ca0)",
+      "node_id": "kr",
+      "dataset_ids_after_import": [],
+      "dropped": true
+    },
+    {
+      "step": "single-step-run-in-C-control",
+      "at": "2026-09-04T08:41:20Z",
+      "http_status": 200,
+      "node_status": "failed",
+      "error": "weights is required",
+      "outputs": null,
+      "shows": "control: dataset_ids intact in the source tenant, same tenant as the dataset itself"
+    },
+    {
+      "step": "single-step-run-in-D-experiment",
+      "at": "2026-09-04T08:41:20Z",
+      "http_status": 200,
+      "node_status": "failed",
+      "error": "weights is required",
+      "outputs": null,
+      "shows": "the node executes with an empty dataset_ids list -- this row is the answer to do-not-claim item #12"
+    }
+  ],
+  "finished_at": "2026-09-04T08:41:20Z",
+  "verdict": {
+    "node_run_with_empty_dataset_ids_status": "failed",
+    "node_run_with_empty_dataset_ids_error": "weights is required",
+    "node_run_raised_no_error": false,
+    "control_node_run_status": "failed"
+  }
+}

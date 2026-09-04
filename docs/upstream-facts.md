@@ -24,6 +24,8 @@ not settled.
 | D5 | The silence is structural: `self._warnings` is never appended on this branch, and `_status_with_warnings` only promotes to `COMPLETED_WITH_WARNINGS` when that list is non-empty. | confirmed | `:494-505` (no append), `:529` and `:574` (the only `extend` calls), `:708-711` |
 | D6 | Export encrypts with the **source** tenant's key; import decrypts with the **target** tenant's key. Within this call, tenant-UUID equality is what decides whether decryption succeeds. | confirmed | export `:670-675`; import passes `tenant_id=app.tenant_id` at `:502`, and `app.tenant_id` is set from `account.current_tenant_id` at `:444` |
 | D7 | `DSL_EXPORT_ENCRYPT_DATASET_ID` defaults to `True`, and ships as `true`. | confirmed | `api/configs/feature/__init__.py:1210-1213`; `docker/envs/core-services/shared.env.example:240` |
+| D8 | At execution time, an empty `dataset_ids` does not raise. `DatasetRetrieval.knowledge_retrieval` computes `available_datasets_ids` from `dataset_ids` and returns `[]` immediately if that list is empty — before the query or attachments are even inspected. The node's `_run` treats this as a normal result: `status: SUCCEEDED`, `outputs: {"result": []}`. Nothing distinguishes this from a legitimate zero-hit search. | confirmed + live | short circuit `api/core/rag/retrieval/dataset_retrieval.py:121-123`; node success path `api/core/workflow/nodes/knowledge_retrieval/knowledge_retrieval_node.py:138-152`; live: `scripts/repro_kr_runtime_execution.py`, `evidence/kr-runtime-execution-2026-09-04T084155Z.json` |
+| D9 | `_get_available_datasets` filters to datasets with at least one `completed`/`enabled`/non-archived document (`having(count > 0)`) unless the dataset is `provider == "external"`. A dataset with zero indexed documents fails this filter exactly like an empty `dataset_ids` does — both take the D8 short circuit. Consequence for the live run: the source-tenant control in `kr-runtime-execution-*.json` used an empty (unindexed) dataset, so it hit the *same* code path as the cross-tenant experiment, not a genuinely different one. The control shows the node does not error when the retrieval legitimately finds nothing; it does **not**, by itself, prove the two situations (dropped reference vs. real zero-hit search) are mechanistically identical at runtime — that part is established by reading D8's anchors, not by this control. | confirmed (filter) / caveat on the live control | `api/core/rag/retrieval/dataset_retrieval.py:1911-1930` |
 
 ## 2. Why this is a reporting gap and not a design disagreement
 
@@ -95,8 +97,12 @@ anything spoken.
     GitHub App leaves no in-repo trace. Note also `LICENSE:13-16`.
 11. ~~"The frontend surfaces these warnings everywhere"~~ — only two call sites render the
     structured payload; four other surfaces show a static string.
-12. ~~"The node errors at runtime"~~ — **unverified**. Not tested; execution behaviour with an empty
-    `dataset_ids` was never exercised.
+12. ~~"The node errors at runtime"~~ — **tested and false** (D8/D9, 2026-09-04). Execution
+    succeeds silently: `status: SUCCEEDED`, `outputs: {"result": []}`, no error, no log line
+    distinguishing it from a legitimate zero-hit search. Do not claim the opposite either —
+    "the runtime path masks the drop the same way the import path does" overstates what the live
+    control can support (D9); the *no-error* half is solid, the *indistinguishable-from-a-real-
+    empty-result* half rests on the source anchors, not on the live control.
 13. ~~"iteration/loop/llm nodes were moved to graphon"~~ — verified only that those directories are
     absent and that `graphon==0.6.0` is pinned (`api/pyproject.toml:48`). "Moved there" is inference.
 

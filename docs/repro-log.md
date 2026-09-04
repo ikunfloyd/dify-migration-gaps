@@ -126,6 +126,54 @@ plaintext ids and queries the target tenant, so it knows the resource is genuine
 path only knows that a value would not decode). The machinery it uses is wired up in the very file
 where the drop happens (`app_dsl_service.py:529`, `:708-711`).
 
-Not tested: what the node does at execution time with an empty `dataset_ids`. No claim is made
-about it.
+Not tested at the time this section was written: what the node does at execution time with an
+empty `dataset_ids`. Addressed below, 2026-09-04.
+
+---
+
+## 2026-09-04 — Runtime execution behaviour (do-not-claim item #12)
+
+Same bed (`~/dify-oss-bed/docker`), brought back up via `docker compose up -d` after 9+ days
+stopped. Postgres data volume survived the stop/start, so `/console/api/setup` still reported
+`finished` from the 2026-08-21 session — but the original tenant A/B credentials were never
+persisted anywhere outside that session's memory, so two fresh tenants were created instead of
+reusing A/B: `flask create-tenant --email c-runtime@example.invalid` and
+`--email d-runtime@example.invalid` (both require `ALLOW_REGISTER=true` and
+`ALLOW_CREATE_WORKSPACE=true`, already set from the original bed disclosure — see E2).
+
+Driver: `scripts/repro_kr_runtime_execution.py`. It repeats the cross-tenant import (tenant
+C → tenant D, same mechanism as the original experiment) and then single-step-runs the
+knowledge-retrieval node via `POST /console/api/apps/{app_id}/workflows/draft/nodes/{node_id}/run`
+in both tenants.
+
+First attempt (`evidence/kr-runtime-execution-2026-09-04T084119Z.json`, kept rather than deleted)
+failed identically in both tenants with `error: "weights is required"` — a defect
+in the test DSL, not the system under test: `multiple_retrieval_config.reranking_mode:
+"weighted_score"` requires a `weights` object that the minimal DSL never supplied
+(`knowledge_retrieval_node.py:229`), and that check runs before `dataset_ids` is ever consulted.
+Fixed by switching `reranking_mode` to `"reranking_model"` with no model configured, which takes
+the `else: reranking_model = None` branch instead (same file, `:232`) — a test-fixture fix, kept
+local to the new script (`source_dsl_runnable`) rather than touching the already-evidenced
+`repro_kr_dataset_drop.source_dsl`.
+
+Second attempt: `evidence/kr-runtime-execution-2026-09-04T084155Z.json`.
+
+| Run | Tenant | `dataset_ids` | Node status | `error` | `outputs.result` |
+|---|---|---|---|---|---|
+| Control | C (source) | present, but dataset has 0 indexed documents | `succeeded` | `null` | `[]` |
+| Experiment | D (cross-tenant import) | dropped by the D1 defect | `succeeded` | `null` | `[]` |
+
+What this shows: the node does not error when `dataset_ids` is empty. It returns a normal
+`SUCCEEDED` result with no findings — indistinguishable, at the API level, from a query that
+legitimately matched nothing.
+
+What this does **not** show, and the control cannot be stretched to claim: the control dataset
+had zero indexed documents, so it *also* took the empty-`available_datasets_ids` short circuit at
+`dataset_retrieval.py:121-123` (see upstream-facts.md D9) — `_get_available_datasets` filters out
+datasets with no completed/enabled documents the same way it filters out an empty `dataset_ids`
+list. The control and the experiment therefore ran the identical code path, not two different
+ones. That the *specific* branch taken differs between "reference dropped" and "real empty
+result" is established by reading the source (D8's anchors), not demonstrated live here. A
+tighter control would index real content into the tenant-C dataset first — not done in this
+session; noted rather than silently skipped.
 
