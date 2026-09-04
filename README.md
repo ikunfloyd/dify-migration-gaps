@@ -37,11 +37,16 @@ Export a **workflow** (or advanced-chat) app containing a `knowledge-retrieval` 
 under a **different tenant**. The node's `dataset_ids` come back empty, and the import reports
 `status: "completed"` with `warnings: []`. Nothing tells the caller that a reference was discarded.
 
-Scope matters here, and three of the four carriers behave differently: chat / agent-chat /
+Scope matters here, and the carriers do not all behave the same way: chat / agent-chat /
 completion apps carry dataset ids unencrypted and unfiltered and show no drop at all; the Agent-v2
 path faces the same situation and *does* warn; the snippet path does not encrypt in the first place.
-The claim is therefore narrow — workflow-family apps, `knowledge-retrieval` nodes, with
-`DSL_EXPORT_ENCRYPT_DATASET_ID` at its default of `true`.
+RAG-pipeline DSL import, originally listed only to bound the claim, turned out on testing
+(2026-09-04) to have the **same drop** — structurally identical, and worse in two ways: its export
+encryption is unconditional (no flag turns it off), and its import response has no `warnings`
+field to report into at all, even in principle. The claim is therefore: workflow / advanced-chat
+apps with a `knowledge-retrieval` node, gated by `DSL_EXPORT_ENCRYPT_DATASET_ID` at its default of
+`true`; **and**, separately, RAG-pipeline DSL with a `knowledge-retrieval` node, which is not
+gated by that flag at all.
 
 The mechanism is not a bug in the encryption — the per-tenant key derivation is a deliberate
 isolation boundary, and this analysis does not propose weakening it. The gap is that the

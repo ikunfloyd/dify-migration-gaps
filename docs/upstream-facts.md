@@ -46,7 +46,7 @@ Stated as sharply as the code allows, because the sibling carriers do not behave
 | S1 | Chat / agent-chat / completion apps carry dataset ids in `model_config` and are exported and imported **verbatim, unencrypted, unfiltered** — the export strips only `credential_id`. No drop occurs there. | confirmed | export `app_dsl_service.py:714-735` (`_append_model_config_export_data`; assignment at `:735`), import `:538-556` (`from_model_config_dict`) |
 | S2 | Agent-v2 knowledge is **not** silent: it warns, and can hard-fail at publish. | confirmed | `agent/dsl_service.py:530-544`; `api/core/workflow/nodes/agent_v2/validators.py:387-404` (message at `:401-404`) |
 | S3 | Snippet DSL dataset-id encryption is an explicit no-op ("For now, just return the dataset_id as-is"). | confirmed | `api/services/snippet_dsl_service.py:545, 549` |
-| S4 | RAG-pipeline DSL is a **separate implementation** keyed on `account.current_tenant_id`. Whether it drops or not was not tested — it is listed to bound the claim, not as a contrasting result. | confirmed (that it is separate) | `api/services/rag_pipeline/rag_pipeline_dsl_service.py:875, 883` |
+| S4 | RAG-pipeline DSL is a **separate implementation**, keyed on `account.current_tenant_id`, and it has the **same drop, plus two ways it is worse**. (a) Same shape: `_create_or_update_pipeline` filters a knowledge-retrieval node's `dataset_ids` through `decrypt_dataset_id` with a walrus comprehension, no `else`, nothing appended anywhere — structurally identical to D1. (b) Export encryption here is **unconditional**: `_append_workflow_export_data` calls `encrypt_dataset_id` with no `DSL_EXPORT_ENCRYPT_DATASET_ID` check anywhere in the file, so there is no flag that turns this off (contrast D7, where the app-DSL path at least has an off switch for future exports). (c) `decrypt_dataset_id` here has **no plain-UUID short circuit** (contrast D2) — it unconditionally AES-decrypts, so even a hand-written DSL with a plaintext dataset_id gets dropped on its first import, encrypted or not. (d) The response model, `RagPipelineImportResponse`, has **no `warnings` field at all** — R1's reporting channel doesn't merely go unused here, as in the app-DSL case; there is nowhere for it to report into even if someone wired it up. | confirmed + live | drop: `rag_pipeline_dsl_service.py:547-556`; unconditional encrypt: `:681-684`; no plain-UUID short circuit: `:883-892` (contrast `app_dsl_service.py:908-930`); response schema: `api/controllers/console/datasets/rag_pipeline/rag_pipeline_import.py:51-57`; live: `scripts/repro_kr_dataset_drop_rag_pipeline.py`, `evidence/kr-dataset-drop-rag-pipeline-2026-09-04T085016Z.json` |
 | S5 | If a target instance holds a tenant with the **same** UUID (a DB clone or restore), decryption succeeds, no existence check runs, and the id is preserved as a **dangling** reference — the opposite symptom. | inference from D2+D6 | — |
 
 ## 4. Reproduction environment — deviations from stock
@@ -69,11 +69,14 @@ anything spoken.
 
 1. ~~"`_generate_aes_key` is at `app_dsl_service.py:470-473`"~~ — it is `890-893`. `470-473` is the
    `match app_mode:` block.
-2. ~~"Cross-environment DSL import drops dataset references"~~ — too broad. The chat-family
-   carrier does not encrypt or filter at all (S1), the Agent path warns (S2), and the snippet path
-   does not encrypt (S3); the RAG-pipeline path is a separate implementation that was not tested
-   (S4). The claim is specifically: workflow / advanced-chat apps, `knowledge-retrieval` nodes,
-   `DSL_EXPORT_ENCRYPT_DATASET_ID` at its default.
+2. ~~"Cross-environment DSL import drops dataset references"~~ — still too broad, though narrower
+   than before 2026-09-04. The chat-family carrier does not encrypt or filter at all (S1), and the
+   Agent path warns (S2); the snippet path does not encrypt (S3). But RAG-pipeline DSL import
+   (S4) is now a **confirmed second carrier** of the same drop, not a bound on the claim's scope —
+   as of 2026-09-04 it is live-verified, not merely structurally similar. The claim is: workflow /
+   advanced-chat apps with `knowledge-retrieval` nodes (gated by `DSL_EXPORT_ENCRYPT_DATASET_ID`
+   at its default), **and** RAG-pipeline DSL with a `knowledge-retrieval` node (S4 — ungated, no
+   flag turns this one off).
 3. ~~"Dify silently loses knowledge-base links on import"~~ — the Agent path is not silent (S2). A
    log containing `agent_knowledge_unresolved` disproves the word.
 4. ~~"The dataset isn't in tenant B, so it was removed"~~ — no such mechanism. `decrypt_dataset_id`

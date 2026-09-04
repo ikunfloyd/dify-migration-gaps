@@ -177,3 +177,50 @@ result" is established by reading the source (D8's anchors), not demonstrated li
 tighter control would index real content into the tenant-C dataset first — not done in this
 session; noted rather than silently skipped.
 
+---
+
+## 2026-09-04 (continued) — RAG-pipeline DSL import (S4)
+
+Same bed, same tenants C and D. Driver: `scripts/repro_kr_dataset_drop_rag_pipeline.py`, same
+four-row shape as the original experiment (source, control 1 same-tenant, experiment cross-tenant)
+minus control 2 — plaintext-vs-tenant is not reachable here (see below).
+
+First obstacle, found by reading `rag_pipeline_dsl_service.decrypt_dataset_id` before running
+anything: unlike the app-DSL path (D2), it has **no plain-UUID short circuit** — it always
+attempts AES decryption, on every import, including a pipeline's very first one. A hand-authored
+DSL with a plaintext dataset_id in a `knowledge-retrieval` node would therefore be dropped on its
+own bootstrap import — there would be nothing left to export. Worked around by importing a
+pipeline with only the required `knowledge-index` node (import fails without one: "DSL is not
+valid, please check the Knowledge Index node."), then attaching the `knowledge-retrieval` node
+afterward via `POST .../workflows/draft` (`sync_draft_workflow` — writes the graph verbatim, never
+calls `decrypt_dataset_id`). This is also why there is no control-2 analogue for this path: control
+2 in the original experiment relied on a plaintext id surviving import in the *target* tenant to
+show the drop isn't an existence check; here a plaintext id can't survive import in *any* tenant,
+so that particular control question doesn't apply the same way.
+
+Ran clean on the first attempt with a real DSL (no fixture bugs this time).
+Evidence: `evidence/kr-dataset-drop-rag-pipeline-2026-09-04T085016Z.json`.
+
+| Run | Tenant | `dataset_ids` sent | Import status | `warnings` key present | Persisted `dataset_ids` |
+|---|---|---|---|---|---|
+| Control 1 | C → C | ciphertext (64 B) | `completed` | no | **preserved** |
+| Experiment | C → D | ciphertext (64 B), byte-identical to control 1 | `completed` | no | **`[]` — dropped** |
+
+Two things beyond the drop itself, both checked rather than assumed:
+
+- **Export encryption is unconditional here.** `_append_workflow_export_data` calls
+  `encrypt_dataset_id` with no `DSL_EXPORT_ENCRYPT_DATASET_ID` (or any other flag) check anywhere
+  in `rag_pipeline_dsl_service.py`. Unlike the app-DSL path, there is no environment variable that
+  turns this off for future exports.
+- **The response schema has no `warnings` field, not just an empty one.** The driver asserts this
+  explicitly (`response_has_warnings_key: false` in the evidence, and the script raises if a
+  `warnings` key is ever present in an import response — a canary in case a future upstream change
+  adds one). `RagPipelineImportResponse`
+  (`controllers/console/datasets/rag_pipeline/rag_pipeline_import.py:51-57`) simply has no such
+  field. R1's reporting channel (`DslImportWarning` / `COMPLETED_WITH_WARNINGS`) isn't merely
+  unused on this path the way it is on the app-DSL path (R3) — there's nowhere for it to report
+  into without a schema change first.
+
+Updated `docs/upstream-facts.md` S4 from "not tested" to confirmed + live, and do-not-claim item 2
+now names RAG-pipeline DSL as a second confirmed carrier rather than a scope-bounding exception.
+
