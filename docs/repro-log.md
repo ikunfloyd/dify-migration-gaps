@@ -11,6 +11,11 @@
 > Note the consequence: a 21-day kill date fires *after* the bot may already have closed the issue,
 > so the internal decision point sits around day 14.
 
+**Anchors in this log are as-of their own section.** Sections dated 2026-08-21 and 2026-09-04 cite
+line numbers at 1.16.0 (`5c6372d`); the 2026-09-18 section and `docs/upstream-facts.md` cite 1.17.1
+(`8387590`). That is deliberate — this log records what was observed when, and rewriting old
+sections to new numbers would falsify the record. `baselines/1.17.1/anchor-map.md` maps between them.
+
 Append-only, written during the session it describes. Timestamps come from the commands
 themselves (`date -u`, container clocks, the driver script's own clock) rather than from memory —
 but a reader has no way to verify that from the repository alone, so treat them as the author's
