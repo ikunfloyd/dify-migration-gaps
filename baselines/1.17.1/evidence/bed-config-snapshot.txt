@@ -1,0 +1,29 @@
+# effective container environment, captured 2026-09-18T12:19:52Z
+# bed: ~/dify-oss-bed-1.17.1/docker, compose project 'difybed1171', ports bound 127.0.0.1 only
+# command: docker exec difybed1171-api-1 env | grep -E '^(DSL_EXPORT_ENCRYPT_DATASET_ID|ALLOW_REGISTER|ALLOW_CREATE_WORKSPACE)='
+ALLOW_CREATE_WORKSPACE=true
+ALLOW_REGISTER=true
+# DSL_EXPORT_ENCRYPT_DATASET_ID absent above = never set in the environment; the app therefore
+# uses its declared default True (api/configs/feature/__init__.py:1293 @ 1.17.1)
+# images:
+
+langgenius/dify-api:1.17.1
+Id=sha256:ceede5b903afaa20348f7ad80ebf847379dc56d886a99b9ec6a08913dacd7732
+RepoDigests=langgenius/dify-api@sha256:ceede5b903afaa20348f7ad80ebf847379dc56d886a99b9ec6a08913dacd7732
+
+langgenius/dify-web:1.17.1
+Id=sha256:6353fe8e04481aaef873ef7317507bfa9ac862572118fd037563a71bff9f4d08
+RepoDigests=langgenius/dify-web@sha256:6353fe8e04481aaef873ef7317507bfa9ac862572118fd037563a71bff9f4d08
+
+langgenius/dify-plugin-daemon:0.6.10-local
+Id=sha256:34412a22d1e1d1a6c73727fef88cffbcdd9be7a21bf9ad3076b4bf5c1b88fd9b
+RepoDigests=langgenius/dify-plugin-daemon@sha256:34412a22d1e1d1a6c73727fef88cffbcdd9be7a21bf9ad3076b4bf5c1b88fd9b
+
+# upstream source pin
+tag=1.17.1
+commit=8387590ace4a094de812b7847fc6a4c3a27cd52b
+released=2026-09-10T10:04:06Z
+# previous baseline for comparison
+prev_tag=1.16.0
+prev_commit=5c6372d2f76d240265b92fd27c16bc772ffcb107
+commits_between=1501

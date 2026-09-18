@@ -224,3 +224,148 @@ Two things beyond the drop itself, both checked rather than assumed:
 Updated `docs/upstream-facts.md` S4 from "not tested" to confirmed + live, and do-not-claim item 2
 now names RAG-pipeline DSL as a second confirmed carrier rather than a scope-bounding exception.
 
+
+---
+
+## 2026-09-18 — Re-pinned to 1.17.1, everything re-run
+
+Upstream shipped **1.17.1** on 2026-09-10 (`8387590ace4a094de812b7847fc6a4c3a27cd52b`), **1501
+commits** past the 1.16.0 baseline this analysis was written against, and both files carrying the
+defect had commits in between — `app_dsl_service.py` 13 of them, one landing the same day this
+section was written. Filing against a month-old tag invites "can you confirm on latest?", and with
+upstream's stale bot at 15 days plus a 3-day grace, a wasted round trip is expensive. So the
+baseline moved and everything was re-done rather than argued about.
+
+### What was checked before touching anything
+
+`git blame` at 1.17.1 dates the defect. The app-DSL drop (`:653-664`) was last touched
+`1117b6e72d7`, **2026-04-09**; the RAG-pipeline drop (`:571-580`) `85cda47c70a`, **2025-09-18** —
+a year to the day. `decrypt_dataset_id` (`:1107-1129`) splits between `2e9997110a1` (2025-04-03) and
+`598ec07c911` (2025-09-08). In `git diff 1.16.0..1.17.1` the comprehension lines appear only as
+*context*, never on either side of a hunk. Across 1501 commits nobody edited them.
+
+Also checked before building anything: no upstream issue reports this. Three searches
+(`dataset_ids`; knowledge-retrieval + import + workspace; `DslImportWarning` /
+`COMPLETED_WITH_WARNINGS`) turned up nothing matching. #42087 has a similar *symptom* (workflow
+retrieval returns `{"result":[]}`) but is Cloud, single-workspace, retrieval-testing-works, root
+cause unidentified — not this path. #42499 mentions RAG-pipeline import but is an RBAC regression.
+
+### Bed
+
+New, isolated from the 1.16.0 one rather than upgrading it, so both remain runnable: 1.17.1's own
+`docker/` compose files copied to `~/dify-oss-bed-1.17.1/docker`, `COMPOSE_PROJECT_NAME=difybed1171`,
+ports `127.0.0.1:18092`/`18454`. Same two non-default flags disclosed for the original bed
+(`ALLOW_REGISTER`, `ALLOW_CREATE_WORKSPACE`); `DSL_EXPORT_ENCRYPT_DATASET_ID` again absent from the
+environment, so the declared default `True` applies. Images pulled fresh — digests and the effective
+container env are in `baselines/1.17.1/evidence/bed-config-snapshot.txt`, which unlike the 1.16.0
+bundles also records the upstream commit the run was made against. That omission in the earlier
+bundles is real: nothing inside them says which version produced them, only the filename date.
+
+API answered `/console/api/setup` about 10s after `compose up`. (An earlier poll reported "ready"
+off a 502 from nginx — the readiness condition was too loose and was tightened to match on `"step"`.)
+
+Tenant A via `/console/api/init` → `/console/api/setup`. Tenants B, C, D via `flask create-tenant`.
+**New operational detail:** at 1.17.1 that command prompts for a language and therefore aborts
+(`Language: Aborted!`) under `docker compose exec -T`; `--language en-US` must be passed explicitly.
+The 1.16.0 log does not mention this because the prompt was not hit there.
+
+### The three existing drivers, unmodified
+
+None needed adaptation. The console paths, the DSL version (`CURRENT_APP_DSL_VERSION = "0.7.0"`,
+unchanged between baselines) and the import payload shape all still match. The RAG-pipeline
+controller was refactored to `@model_validate(RagPipelineImportPayload)` between baselines, but the
+accepted body did not change.
+
+| driver | result on 1.17.1 |
+|---|---|
+| `repro_kr_dataset_drop.py` | `dropped_without_report: true`, control 1 preserved, control 2 preserved — identical to 1.16.0. `warnings_key_present: true`, `warnings: []`, `status: "completed"` |
+| `repro_kr_dataset_drop_rag_pipeline.py` | `dropped_without_report: true`, control 1 preserved, `response_schema_has_no_warnings_field: true` — the script's canary (it raises if a `warnings` key ever appears) did not fire |
+| `repro_kr_runtime_execution.py` | node `succeeded`, `error: null` |
+
+Evidence: `baselines/1.17.1/evidence/`.
+
+### D9's caveat, discharged
+
+The 2026-09-04 section closed by naming a limitation instead of hiding it: the control dataset had
+zero indexed documents, so `_get_available_datasets` filtered it out with the same `having(count>0)`
+predicate an empty `dataset_ids` trips, and control and experiment ran the *same* short circuit. New
+driver `scripts/repro_kr_runtime_tighter_control.py` fixes that — it uploads a document with
+deliberately distinctive invented tokens ("zarnathine protocol"), waits for `indexing_status:
+completed`, confirms via hit-testing, and only then builds the app.
+
+| | `dataset_ids` | node status | `result` |
+|---|---|---|---|
+| Control — tenant C, dataset **with** indexed content | 1 id | `succeeded` | **2 records** |
+| Experiment — tenant D, cross-tenant import | dropped to `[]` | `succeeded` | 0 records |
+
+The control now demonstrably does not take the experiment's short circuit. Two failures on the way,
+both kept: the first run assumed `draft_node()` returned a graph when it returns `(node_id,
+node_data)`, and the first patch still routed through the sibling script's `run_node()`, whose query
+is hardcoded to an unrelated question — which would have made the control return `[]` for entirely
+the wrong reason and looked like a confirmation. A local `run_query()` taking the caller's query
+replaced it.
+
+What this still does **not** show, and do-not-claim #12 now says so explicitly: that an operator can
+tell the two apart. Both read `SUCCEEDED` + `result: []`.
+
+### Re-anchoring the ledger
+
+Every fact relocated section by section, each anchor established by opening the file at 1.17.1 and
+quoting the decisive lines rather than adjusting the old number to fit. Every fact graded as
+anything other than "moved" then went through a second, adversarial pass instructed to refute the
+first.
+
+43 facts: 2 same anchor, 29 moved, 8 need rewording, 4 changed, **0 refuted**. Two refutations
+succeeded, both narrowing an overstatement rather than overturning a fact — D6 had been called a
+reword on the grounds that a `target_tenant_id` local was new behaviour (it is not; the 1.16.0
+assignment sat in the same create-branch), and E2 had been called a change when only the anchors and
+the raised class moved. Full comparison: `baselines/1.17.1/anchor-map.md`.
+
+Two errors in the ledger itself surfaced, neither caused by the version bump:
+
+- The CSRF half of E5 cited `wraps.py:564-580`. That was never a CSRF anchor at *either* baseline —
+  at 1.16.0 those lines were `decrypt_password_field`. Real anchor: `api/libs/token.py:197-227`.
+- S4 said "plus **two** ways it is worse" and then listed three. Now three, and (c) is wider than
+  written: the RAG decoder has no post-decrypt UUID validation either, so a non-empty garbage decode
+  survives into the persisted graph where the app-DSL path would reject it.
+
+E1 lost half a claim: `ALLOW_REGISTER`/`ALLOW_CREATE_WORKSPACE` now **do** ship in an env example
+(`shared.env.example:28-29`), which they did not at 1.16.0. E6 lost more — `/console/api/workspaces/current`
+does not exist at 1.17.1 at all, so "POST-only" is not a thing to say about it any more.
+
+### Sweep for carriers the ledger missed
+
+`grep -rn 'pad(\|unpad('` over non-test `api/` returns exactly four DSL hits across two files;
+`grep -rn '"dataset_ids"\] ='` exactly five assignment sites across three. **Still exactly two
+silent-drop implementations. No third carrier discards a reference.**
+
+Two *propagation* paths were missing from the ledger, though, and one of them matters:
+
+- **The migration-package mover** (`services/data_migration/`) — upstream's own cross-tenant bulk
+  mover, i.e. the tool an operator would actually reach for to do what this analysis does by hand.
+  It delegates to the app-DSL carrier both ways and adds a second layer of silence: `import_service.py:345`
+  accepts `COMPLETED_WITH_WARNINGS` as success and never reads the list. Fixing the app-DSL branch
+  alone would not surface anything here. Recorded as R6/S6 and, because it has **not** been run,
+  fenced by new do-not-claim #14.
+- The recommended-app catalog / explore templates, same delegation, same silence.
+
+The reporting side got more precise too: exactly **six** `DslImportWarning` construction sites exist
+repo-wide, all in `agent/dsl_service.py`, covering six classes of unresolvable reference — the ledger
+had cited one. And exactly three sites set `COMPLETED_WITH_WARNINGS`, one of which
+(`dsl_version.py:19`, extracted since 1.16.0) is shared by all three importers, making it the only
+route by which a RAG-pipeline import can return that status — for version skew, never for a lost
+reference.
+
+### Second, independent derivation
+
+The core questions were answered from source a second time, posed blind — without this analysis's
+framing and without reference to it, so a wrong premise would surface as a rejection rather than be
+confirmed by suggestion. That pass reached the same conclusions and sharpened two: the RAG decoder's
+missing post-decrypt UUID validation (above), and that `RagPipelineImportResponse`'s base sets
+`extra="ignore"` (`api/fields/base.py:9`), so a warnings field cannot arrive by accident — the schema
+change really is a prerequisite. Those working notes are not committed; they were an instrument, not
+evidence.
+
+### Kill date
+
+Still not armed. No upstream issue has been opened.

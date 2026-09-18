@@ -1,0 +1,123 @@
+{
+  "started_at": "2026-09-18T12:05:13Z",
+  "base": "http://127.0.0.1:18092",
+  "dsl_version": "0.7.0",
+  "steps": [
+    {
+      "step": "logged-in",
+      "at": "2026-09-18T12:05:13Z",
+      "tenant_a": "1d9ddb64…(sha256:d7324bb7611b)",
+      "tenant_b": "d669662c…(sha256:82fea14a6882)",
+      "tenants_differ": true
+    },
+    {
+      "step": "dataset-created-in-A",
+      "at": "2026-09-18T12:05:13Z",
+      "dataset_id": "b35ecc21…(sha256:6ecf641dd7d3)",
+      "indexing_technique": "economy",
+      "embedding_model": null,
+      "note": "economy indexing: no embedding-model credentials required"
+    },
+    {
+      "step": "source-app-in-A",
+      "at": "2026-09-18T12:05:13Z",
+      "app_id": "608a12af…(sha256:32d543f91b92)",
+      "import_status": "completed",
+      "dataset_ids_bound": [
+        "b35ecc21…(sha256:6ecf641dd7d3)"
+      ],
+      "matches_dataset": true
+    },
+    {
+      "step": "exported-from-A",
+      "at": "2026-09-18T12:05:13Z",
+      "yaml_sha256": "81c4211fc874cfd696aedfa07d7a0b18beabbf4d882c379d65b115752d6a91b3",
+      "yaml_bytes": 1586,
+      "dataset_ids_ciphertext_len": 64,
+      "dataset_ids_is_ciphertext": true,
+      "note": "ciphertext value itself deliberately not recorded: key is sha256(tenant_id)"
+    },
+    {
+      "step": "control-1-same-tenant",
+      "at": "2026-09-18T12:05:13Z",
+      "artifact_sha256": "81c4211fc874cfd696aedfa07d7a0b18beabbf4d882c379d65b115752d6a91b3",
+      "import_status": "completed",
+      "warnings_key_present": true,
+      "warnings": [],
+      "response_redacted": {
+        "id": "8694af9f…(sha256:909a99d45fa4)",
+        "status": "completed",
+        "app_id": "94b411ac…(sha256:8a34a4885925)",
+        "app_mode": "workflow",
+        "permission_keys": [],
+        "current_dsl_version": "0.7.0",
+        "imported_dsl_version": "0.7.0",
+        "error": "",
+        "warnings": []
+      },
+      "dataset_ids": [
+        "b35ecc21…(sha256:6ecf641dd7d3)"
+      ],
+      "preserved": true,
+      "shows": "the exported artifact is intact and import does not drop ids in general"
+    },
+    {
+      "step": "experiment-cross-tenant",
+      "at": "2026-09-18T12:05:13Z",
+      "artifact_sha256": "81c4211fc874cfd696aedfa07d7a0b18beabbf4d882c379d65b115752d6a91b3",
+      "artifact_identical_to_control_1": true,
+      "import_status": "completed",
+      "warnings_key_present": true,
+      "warnings": [],
+      "error": "",
+      "response_redacted": {
+        "id": "60e6b1a2…(sha256:2362b94697bf)",
+        "status": "completed",
+        "app_id": "2adedc7d…(sha256:09f728f9841e)",
+        "app_mode": "workflow",
+        "permission_keys": [],
+        "current_dsl_version": "0.7.0",
+        "imported_dsl_version": "0.7.0",
+        "error": "",
+        "warnings": []
+      },
+      "dataset_ids": [],
+      "dropped": true,
+      "shows": "the reference is absent from the persisted graph, and the import API response reported completed without a non-empty warnings list. Not checked: server logs, the web UI, or any other channel"
+    },
+    {
+      "step": "control-2-plaintext-cross-tenant",
+      "at": "2026-09-18T12:05:13Z",
+      "artifact_sha256": "66c5de121064bae102e6799f5eda2823d251e0542ded50d49d5a4ebfbda936d1",
+      "artifact_identical_to_experiment": false,
+      "artifact_diff": "the single dataset_ids element: ciphertext replaced by the plaintext UUID",
+      "import_status": "completed",
+      "warnings_key_present": true,
+      "warnings": [],
+      "response_redacted": {
+        "id": "e2705ef2…(sha256:e4e8ce086dbf)",
+        "status": "completed",
+        "app_id": "de829a58…(sha256:dc9f7ed462cc)",
+        "app_mode": "workflow",
+        "permission_keys": [],
+        "current_dsl_version": "0.7.0",
+        "imported_dsl_version": "0.7.0",
+        "error": "",
+        "warnings": []
+      },
+      "dataset_ids": [
+        "b35ecc21…(sha256:6ecf641dd7d3)"
+      ],
+      "preserved": true,
+      "dataset_visible_to_target_tenant": false,
+      "target_tenant_dataset_count": 0,
+      "shows": "a readable id is written into the target tenant's graph even though that tenant's own dataset list does not contain it. So the element removed in the experiment was removed on the branch taken when decrypt_dataset_id returns None — not by an existence or ownership check, of which this path performs none"
+    }
+  ],
+  "finished_at": "2026-09-18T12:05:13Z",
+  "verdict": {
+    "dropped_without_report": true,
+    "control_1_preserved": true,
+    "control_2_preserved": true
+  }
+}

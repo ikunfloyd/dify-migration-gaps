@@ -1,0 +1,69 @@
+{
+  "started_at": "2026-09-18T12:06:01Z",
+  "base": "http://127.0.0.1:18092",
+  "steps": [
+    {
+      "step": "logged-in",
+      "at": "2026-09-18T12:06:01Z",
+      "tenant_c": "e3c43cae…(sha256:06edcd2aa354)",
+      "tenant_d": "f326a30f…(sha256:d5a523b5b3af)",
+      "tenants_differ": true
+    },
+    {
+      "step": "dataset-created-in-C",
+      "at": "2026-09-18T12:06:01Z",
+      "dataset_id": "728736d1…(sha256:d0cd53eb8c1f)"
+    },
+    {
+      "step": "source-app-in-C",
+      "at": "2026-09-18T12:06:01Z",
+      "app_id": "4d69cdbf…(sha256:524a62e66900)",
+      "node_id": "kr",
+      "dataset_ids_bound": [
+        "728736d1…(sha256:d0cd53eb8c1f)"
+      ]
+    },
+    {
+      "step": "exported-from-C",
+      "at": "2026-09-18T12:06:01Z",
+      "yaml_sha256": "9b40f9617cb21d8bbafd7bce177e13e3855ca168dc51ce0c0fbedd00526c1ddf"
+    },
+    {
+      "step": "cross-tenant-import-into-D",
+      "at": "2026-09-18T12:06:01Z",
+      "app_id": "be022f9c…(sha256:4a3e268c8639)",
+      "node_id": "kr",
+      "dataset_ids_after_import": [],
+      "dropped": true
+    },
+    {
+      "step": "single-step-run-in-C-control",
+      "at": "2026-09-18T12:06:02Z",
+      "http_status": 200,
+      "node_status": "succeeded",
+      "error": null,
+      "outputs": {
+        "result": []
+      },
+      "shows": "control: dataset_ids intact in the source tenant, same tenant as the dataset itself"
+    },
+    {
+      "step": "single-step-run-in-D-experiment",
+      "at": "2026-09-18T12:06:02Z",
+      "http_status": 200,
+      "node_status": "succeeded",
+      "error": null,
+      "outputs": {
+        "result": []
+      },
+      "shows": "the node executes with an empty dataset_ids list -- this row is the answer to do-not-claim item #12"
+    }
+  ],
+  "finished_at": "2026-09-18T12:06:02Z",
+  "verdict": {
+    "node_run_with_empty_dataset_ids_status": "succeeded",
+    "node_run_with_empty_dataset_ids_error": null,
+    "node_run_raised_no_error": true,
+    "control_node_run_status": "succeeded"
+  }
+}

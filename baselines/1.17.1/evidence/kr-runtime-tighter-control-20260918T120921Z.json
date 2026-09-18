@@ -1,0 +1,427 @@
+{
+  "started_at": "2026-09-18T12:09:17Z",
+  "base": "http://127.0.0.1:18092",
+  "purpose": "tighter control for D9 -- control dataset has indexed content",
+  "query": "What are the three phases of the zarnathine protocol?",
+  "steps": [
+    {
+      "step": "logged-in",
+      "at": "2026-09-18T12:09:17Z"
+    },
+    {
+      "step": "dataset-created-in-C",
+      "at": "2026-09-18T12:09:17Z",
+      "dataset": {
+        "id": "b54a015f…(sha256:c8c89c876341)",
+        "name": "kbTight-2026-09-18T12:09:17Z",
+        "description": "",
+        "provider": "vendor",
+        "permission": "only_me",
+        "data_source_type": null,
+        "indexing_technique": "economy",
+        "app_count": 0,
+        "document_count": 0,
+        "word_count": 0,
+        "created_by": "902861f9…(sha256:f518bae5c931)",
+        "author_name": "c-1171",
+        "created_at": 1789733358,
+        "updated_by": "902861f9…(sha256:f518bae5c931)",
+        "updated_at": 1789733358,
+        "embedding_model": null,
+        "embedding_model_provider": null,
+        "embedding_available": null,
+        "retrieval_model_dict": {
+          "search_method": "semantic_search",
+          "reranking_enable": false,
+          "reranking_mode": null,
+          "reranking_model": {
+            "reranking_provider_name": "",
+            "reranking_model_name": ""
+          },
+          "weights": null,
+          "top_k": 2,
+          "score_threshold_enabled": false,
+          "score_threshold": null
+        },
+        "summary_index_setting": {
+          "enable": null,
+          "model_name": null,
+          "model_provider_name": null,
+          "summary_prompt": null
+        },
+        "tags": [],
+        "doc_form": null,
+        "external_knowledge_info": {
+          "external_knowledge_id": null,
+          "external_knowledge_api_id": null,
+          "external_knowledge_api_name": null,
+          "external_knowledge_api_endpoint": null
+        },
+        "external_retrieval_model": {
+          "top_k": 2,
+          "score_threshold": 0.0,
+          "score_threshold_enabled": null
+        },
+        "doc_metadata": [],
+        "built_in_field_enabled": false,
+        "pipeline_id": null,
+        "runtime_mode": "general",
+        "chunk_structure": null,
+        "icon_info": {
+          "icon_type": null,
+          "icon": null,
+          "icon_background": null,
+          "icon_url": null
+        },
+        "is_published": false,
+        "total_documents": 0,
+        "total_available_documents": 0,
+        "enable_api": true,
+        "is_multimodal": false,
+        "permission_keys": [
+          "dataset.acl.preview",
+          "dataset.acl.readonly",
+          "dataset.acl.edit",
+          "dataset.acl.import_export_dsl",
+          "dataset.acl.pipeline_test",
+          "dataset.acl.document_download",
+          "dataset.acl.retrieval_recall",
+          "dataset.acl.use",
+          "dataset.acl.delete_file",
+          "dataset.acl.pipeline_release",
+          "dataset.acl.delete",
+          "dataset.acl.access_config",
+          "dataset.api_key.manage"
+        ],
+        "maintainer": "902861f9…(sha256:f518bae5c931)",
+        "partial_member_list": null
+      }
+    },
+    {
+      "step": "file-uploaded",
+      "at": "2026-09-18T12:09:17Z",
+      "file": {
+        "id": "321aa52d…(sha256:f587eafb7456)",
+        "reference": null,
+        "name": "zarnathine.txt",
+        "size": 532,
+        "extension": "txt",
+        "mime_type": "text/plain",
+        "created_by": "902861f9…(sha256:f518bae5c931)",
+        "created_at": 1789733357,
+        "preview_url": null,
+        "source_url": "/files/321aa52d…(sha256:f587eafb7456)/file-preview?timestamp=1789733357&nonce=33b374aa6b17a84a3169ba586d4334c2&sign=emZ8x4GD2uyF7mav2WIdFftV45RAxxxMlL4t2sntNn4%3D",
+        "original_url": null,
+        "user_id": null,
+        "tenant_id": "e3c43cae…(sha256:06edcd2aa354)",
+        "conversation_id": null,
+        "file_key": null
+      }
+    },
+    {
+      "step": "document-created",
+      "at": "2026-09-18T12:09:17Z",
+      "document": {
+        "dataset": {
+          "id": "b54a015f…(sha256:c8c89c876341)",
+          "name": "kbTight-2026-09-18T12:09:17Z",
+          "description": "",
+          "permission": "only_me",
+          "data_source_type": "upload_file",
+          "indexing_technique": "economy",
+          "created_by": "902861f9…(sha256:f518bae5c931)",
+          "created_at": 1789733358
+        },
+        "documents": [
+          {
+            "id": "aa4288b5…(sha256:fc1ac9b60518)",
+            "position": 1,
+            "data_source_type": "upload_file",
+            "data_source_info": {
+              "upload_file_id": "321aa52d…(sha256:f587eafb7456)"
+            },
+            "data_source_detail_dict": {
+              "upload_file": {
+                "id": "321aa52d…(sha256:f587eafb7456)",
+                "name": "zarnathine.txt",
+                "size": 532,
+                "extension": "txt",
+                "mime_type": "text/plain",
+                "created_by": "902861f9…(sha256:f518bae5c931)",
+                "created_at": 1789733357.573412
+              }
+            },
+            "dataset_process_rule_id": "d8c61c7e…(sha256:ebecd2854b2a)",
+            "name": "zarnathine.txt",
+            "created_from": "web",
+            "created_by": "902861f9…(sha256:f518bae5c931)",
+            "created_at": 1789733358,
+            "tokens": null,
+            "indexing_status": "waiting",
+            "error": null,
+            "enabled": true,
+            "disabled_at": null,
+            "disabled_by": null,
+            "archived": false,
+            "display_status": "queuing",
+            "word_count": null,
+            "hit_count": 0,
+            "doc_form": "text_model",
+            "doc_metadata": [],
+            "summary_index_status": null,
+            "need_summary": false
+          }
+        ],
+        "batch": "20260918120917558518"
+      }
+    },
+    {
+      "step": "document-indexed",
+      "at": "2026-09-18T12:09:20Z",
+      "indexing_status": {
+        "data": [
+          {
+            "id": "aa4288b5…(sha256:fc1ac9b60518)",
+            "indexing_status": "completed",
+            "processing_started_at": 1789733357,
+            "parsing_completed_at": 1789733357,
+            "cleaning_completed_at": 1789733357,
+            "splitting_completed_at": 1789733357,
+            "completed_at": 1789733357,
+            "paused_at": null,
+            "error": null,
+            "error_code": null,
+            "estimated_vector_space_mb": null,
+            "vector_space_limit_mb": null,
+            "stopped_at": null,
+            "completed_segments": 2,
+            "total_segments": 2
+          }
+        ]
+      }
+    },
+    {
+      "step": "hit-testing",
+      "at": "2026-09-18T12:09:20Z",
+      "http": 400,
+      "records": 0
+    },
+    {
+      "step": "source-app-in-C",
+      "at": "2026-09-18T12:09:20Z",
+      "app": {
+        "id": "a2ad72ca…(sha256:673b6f4e6d5c)",
+        "status": "completed",
+        "app_id": "6a2fe0a3…(sha256:37827aeef1be)",
+        "app_mode": "workflow",
+        "permission_keys": [],
+        "current_dsl_version": "0.7.0",
+        "imported_dsl_version": "0.7.0",
+        "error": "",
+        "warnings": []
+      }
+    },
+    {
+      "step": "exported-from-C",
+      "at": "2026-09-18T12:09:20Z",
+      "sha256": "5efce4c9fb9c9ec95b6fc4a2ed02116e42eeb7027f4a1c0bf241c073f3f2c5b5"
+    },
+    {
+      "step": "cross-tenant-import-into-D",
+      "at": "2026-09-18T12:09:20Z",
+      "app": {
+        "id": "833d296e…(sha256:2386187d61ac)",
+        "status": "completed",
+        "app_id": "fc03ac88…(sha256:f633c7b5f588)",
+        "app_mode": "workflow",
+        "permission_keys": [],
+        "current_dsl_version": "0.7.0",
+        "imported_dsl_version": "0.7.0",
+        "error": "",
+        "warnings": []
+      }
+    },
+    {
+      "step": "persisted-dataset-ids",
+      "at": "2026-09-18T12:09:20Z",
+      "control_C": 1,
+      "experiment_D": 0
+    },
+    {
+      "step": "control-run-in-C",
+      "at": "2026-09-18T12:09:21Z",
+      "http": 200,
+      "response": {
+        "id": "29b06c35…(sha256:3f2360630643)",
+        "index": 1,
+        "predecessor_node_id": null,
+        "node_id": "kr",
+        "node_type": "knowledge-retrieval",
+        "title": "Knowledge Retrieval",
+        "inputs": {
+          "query": "What are the three phases of the zarnathine protocol?"
+        },
+        "process_data": {
+          "usage": {
+            "completion_price": "0.0",
+            "completion_price_unit": "0.0",
+            "completion_tokens": 0,
+            "completion_unit_price": "0.0",
+            "currency": "USD",
+            "latency": 0.0,
+            "prompt_price": "0.0",
+            "prompt_price_unit": "0.0",
+            "prompt_tokens": 0,
+            "prompt_unit_price": "0.0",
+            "time_to_first_token": null,
+            "time_to_generate": null,
+            "total_price": "0.0",
+            "total_tokens": 0
+          }
+        },
+        "outputs": {
+          "result": [
+            {
+              "content": "Zarnathine Protocol Overview\n\nThe zarnathine protocol is a fictitious reconciliation procedure invented solely for this\nreproduction. It has three phases: quillanth intake, morvex balancing, and final drenthal\nsettlement. A quillanth intake record is considered valid when its drenthal checksum matches\nthe morvex ledger entry for the same period.",
+              "files": null,
+              "metadata": {
+                "_source": "knowledge",
+                "child_chunks": [],
+                "data_source_type": "upload_file",
+                "dataset_id": "b54a015f…(sha256:c8c89c876341)",
+                "dataset_name": "kbTight-2026-09-18T12:09:17Z",
+                "doc_metadata": null,
+                "document_id": "aa4288b5…(sha256:fc1ac9b60518)",
+                "document_name": "zarnathine.txt",
+                "position": 1,
+                "retriever_from": "workflow",
+                "score": 0.42049436979066884,
+                "segment_hit_count": 1,
+                "segment_id": "55dd58d1…(sha256:057aaa955434)",
+                "segment_index_node_hash": "560006453be2cf5df7cf10bd1a6ae2b70f60fd82446c3cad69c6245e24694f0a",
+                "segment_position": 1,
+                "segment_word_count": 347
+              },
+              "summary": null,
+              "title": "zarnathine.txt"
+            },
+            {
+              "content": "Operators performing a zarnathine reconciliation should verify the drenthal checksum before\nclosing the period. If the morvex ledger disagrees, the quillanth intake must be replayed.",
+              "files": null,
+              "metadata": {
+                "_source": "knowledge",
+                "child_chunks": [],
+                "data_source_type": "upload_file",
+                "dataset_id": "b54a015f…(sha256:c8c89c876341)",
+                "dataset_name": "kbTight-2026-09-18T12:09:17Z",
+                "doc_metadata": null,
+                "document_id": "aa4288b5…(sha256:fc1ac9b60518)",
+                "document_name": "zarnathine.txt",
+                "position": 2,
+                "retriever_from": "workflow",
+                "score": 0.14132686562361013,
+                "segment_hit_count": 1,
+                "segment_id": "337de287…(sha256:96f872015eb4)",
+                "segment_index_node_hash": "413c82a26ad4617c5685647802208f3d878e444f8dcc3732742783fa6e07f280",
+                "segment_position": 2,
+                "segment_word_count": 182
+              },
+              "summary": null,
+              "title": "zarnathine.txt"
+            }
+          ]
+        },
+        "status": "succeeded",
+        "error": null,
+        "elapsed_time": 1.1745037509999747,
+        "execution_metadata": {
+          "total_tokens": 0,
+          "total_price": "0.0",
+          "currency": "USD"
+        },
+        "extras": {},
+        "created_at": 1789733361,
+        "created_by_role": "account",
+        "created_by_account": {
+          "id": "902861f9…(sha256:f518bae5c931)",
+          "name": "c-1171",
+          "email": "c-1171@example.invalid"
+        },
+        "created_by_end_user": null,
+        "finished_at": 1789733361,
+        "inputs_truncated": false,
+        "outputs_truncated": false,
+        "process_data_truncated": false
+      }
+    },
+    {
+      "step": "experiment-run-in-D",
+      "at": "2026-09-18T12:09:21Z",
+      "http": 200,
+      "response": {
+        "id": "9080e7d3…(sha256:bebce56bf45d)",
+        "index": 1,
+        "predecessor_node_id": null,
+        "node_id": "kr",
+        "node_type": "knowledge-retrieval",
+        "title": "Knowledge Retrieval",
+        "inputs": {
+          "query": "What are the three phases of the zarnathine protocol?"
+        },
+        "process_data": {
+          "usage": {
+            "completion_price": "0.0",
+            "completion_price_unit": "0.0",
+            "completion_tokens": 0,
+            "completion_unit_price": "0.0",
+            "currency": "USD",
+            "latency": 0.0,
+            "prompt_price": "0.0",
+            "prompt_price_unit": "0.0",
+            "prompt_tokens": 0,
+            "prompt_unit_price": "0.0",
+            "time_to_first_token": null,
+            "time_to_generate": null,
+            "total_price": "0.0",
+            "total_tokens": 0
+          }
+        },
+        "outputs": {
+          "result": []
+        },
+        "status": "succeeded",
+        "error": null,
+        "elapsed_time": 0.0011221250000517102,
+        "execution_metadata": {
+          "total_tokens": 0,
+          "total_price": "0.0",
+          "currency": "USD"
+        },
+        "extras": {},
+        "created_at": 1789733361,
+        "created_by_role": "account",
+        "created_by_account": {
+          "id": "e664c524…(sha256:33209d8557bc)",
+          "name": "d-1171",
+          "email": "d-1171@example.invalid"
+        },
+        "created_by_end_user": null,
+        "finished_at": 1789733361,
+        "inputs_truncated": false,
+        "outputs_truncated": false,
+        "process_data_truncated": false
+      }
+    }
+  ],
+  "finished_at": "2026-09-18T12:09:21Z",
+  "verdict": {
+    "control_dataset_had_indexed_content": true,
+    "control_status": "succeeded",
+    "control_result_count": 2,
+    "experiment_status": "succeeded",
+    "experiment_result_count": 0,
+    "experiment_dataset_ids_dropped": true,
+    "control_took_a_different_path": true,
+    "experiment_succeeded_with_empty_result": true
+  }
+}

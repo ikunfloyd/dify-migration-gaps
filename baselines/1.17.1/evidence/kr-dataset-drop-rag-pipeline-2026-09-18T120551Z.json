@@ -1,0 +1,90 @@
+{
+  "started_at": "2026-09-18T12:05:51Z",
+  "base": "http://127.0.0.1:18092",
+  "dsl_version": "0.1.0",
+  "steps": [
+    {
+      "step": "logged-in",
+      "at": "2026-09-18T12:05:51Z",
+      "tenant_c": "e3c43cae…(sha256:06edcd2aa354)",
+      "tenant_d": "f326a30f…(sha256:d5a523b5b3af)",
+      "tenants_differ": true
+    },
+    {
+      "step": "retrieval-dataset-created-in-C",
+      "at": "2026-09-18T12:05:51Z",
+      "dataset_id": "3d16b73b…(sha256:a2812c806a86)"
+    },
+    {
+      "step": "kr-node-attached-via-draft-sync",
+      "at": "2026-09-18T12:05:51Z",
+      "pipeline_id": "2f887183…(sha256:19ecf50a6fe7)"
+    },
+    {
+      "step": "source-pipeline-in-C",
+      "at": "2026-09-18T12:05:51Z",
+      "pipeline_id": "2f887183…(sha256:19ecf50a6fe7)",
+      "ingestion_dataset_id": "31ebe3da…(sha256:3b7f9f5106bf)",
+      "kr_node_id": "kr",
+      "dataset_ids_bound": [
+        "3d16b73b…(sha256:a2812c806a86)"
+      ],
+      "matches_dataset": true
+    },
+    {
+      "step": "exported-from-C",
+      "at": "2026-09-18T12:05:51Z",
+      "yaml_sha256": "828a5d96100fb84d8ad898e5e98c627268e07d2554d917a534ceeb0e9408f90f",
+      "yaml_bytes": 1649,
+      "dataset_ids_ciphertext_len": 64,
+      "dataset_ids_is_ciphertext": true,
+      "note": "ciphertext value itself deliberately not recorded: key is sha256(tenant_id)"
+    },
+    {
+      "step": "control-1-same-tenant",
+      "at": "2026-09-18T12:05:51Z",
+      "artifact_sha256": "828a5d96100fb84d8ad898e5e98c627268e07d2554d917a534ceeb0e9408f90f",
+      "import_status": "completed",
+      "response_redacted": {
+        "id": "e70ee1e5…(sha256:b1b9c69e946e)",
+        "status": "completed",
+        "pipeline_id": "b158056a…(sha256:3a801b4ae691)",
+        "dataset_id": "640d47f4…(sha256:947eaa5bdf01)",
+        "current_dsl_version": "0.1.0",
+        "imported_dsl_version": "0.1.0",
+        "error": ""
+      },
+      "dataset_ids": [
+        "3d16b73b…(sha256:a2812c806a86)"
+      ],
+      "preserved": true,
+      "shows": "the exported artifact is intact and same-tenant import does not drop ids"
+    },
+    {
+      "step": "experiment-cross-tenant",
+      "at": "2026-09-18T12:05:51Z",
+      "artifact_sha256": "828a5d96100fb84d8ad898e5e98c627268e07d2554d917a534ceeb0e9408f90f",
+      "artifact_identical_to_control_1": true,
+      "import_status": "completed",
+      "response_has_warnings_key": false,
+      "response_redacted": {
+        "id": "db1246d4…(sha256:a25dbd6f4946)",
+        "status": "completed",
+        "pipeline_id": "a3e83e25…(sha256:ef97db12c451)",
+        "dataset_id": "2c645828…(sha256:d89d1c891356)",
+        "current_dsl_version": "0.1.0",
+        "imported_dsl_version": "0.1.0",
+        "error": ""
+      },
+      "dataset_ids": [],
+      "dropped": true,
+      "shows": "RagPipelineImportResponse has no warnings field at all (confirmed by source: controllers/console/datasets/rag_pipeline/rag_pipeline_import.py:51-57), so this row also checks that the live response body genuinely carries no such key -- not just an empty list"
+    }
+  ],
+  "finished_at": "2026-09-18T12:05:51Z",
+  "verdict": {
+    "dropped_without_report": true,
+    "control_1_preserved": true,
+    "response_schema_has_no_warnings_field": true
+  }
+}
