@@ -48,6 +48,14 @@ warning reports what it honestly knows: which node, by the title the operator se
 Matches the existing construction sites in `agent/dsl_service.py`, and the per-element `path` keeps
 the original index, which survives duplicates in a way an aggregate count would not.
 
+This composes with how the web client renders them, which is also why decision 1 puts the node
+title in the *message* and not only in `details`:
+`web/app/components/app/create-from-dsl-modal/dsl-import-warning-description.tsx` de-duplicates by
+message text (`new Set(warnings.map(w => w.message.trim()))`) and shows at most three. So several
+losses inside one node collapse to a single line — which is what an operator wants — while losses
+in different nodes stay distinct, because the titles differ. Had the message omitted the title,
+every warning would have collapsed into one and the operator would not know how many nodes to fix.
+
 **3. Empty strings are skipped, not reported.**
 
 An empty string was never a reference, so dropping it is not a loss. Reporting it would produce a
