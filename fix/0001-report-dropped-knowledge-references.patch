@@ -1,4 +1,4 @@
-From edfdeb4f9800691e62447e505127d799f319d7d6 Mon Sep 17 00:00:00 2001
+From 537bb94870a7a7b9bfef2f1e7f2fd54b312e6595 Mon Sep 17 00:00:00 2001
 From: ikunfloyd <146411514+ikunfloyd@users.noreply.github.com>
 Date: Fri, 25 Sep 2026 21:26:49 -0700
 Subject: [PATCH] fix(api): report knowledge-retrieval dataset ids dropped on
@@ -14,10 +14,14 @@ Nothing downstream surfaces the loss either: at runtime an empty dataset_ids sho
 DatasetRetrieval.knowledge_retrieval and the node returns SUCCEEDED with result: [], which is
 indistinguishable from a query that legitimately matched nothing.
 
-Report it through the mechanism already used in this file. DslImportWarning is already constructed
-for six other classes of unresolvable reference, and this branch already extends self._warnings
-for agent packages twenty-odd lines below; the knowledge-retrieval branch was the one that did not
-use it.
+Report it through the mechanism this file already carries. DslImportWarning is constructed in
+services/agent/dsl_service.py for the other kinds of reference that cannot be restored in the
+target workspace, and this same match-case branch already extends self._warnings with those a
+few lines below; the knowledge-retrieval branch was the one that collected nothing.
+
+Externally visible change: a cross-tenant import that loses a reference now returns
+COMPLETED_WITH_WARNINGS instead of COMPLETED. Every existing consumer of the import result
+already accepts that status, and an import that loses nothing is unaffected.
 
 The encryption is untouched. The import still succeeds and the reference is neither restored nor
 existence-checked - only the silent omission is reported, so the operator knows which node to
@@ -27,12 +31,12 @@ Warnings carry the node title rather than only the array index, because the inde
 on the canvas. The undecryptable value itself is deliberately not echoed: both the AES key and the
 IV derive from the tenant id, so returning it would add exposure without helping reselection.
 ---
- api/services/app_dsl_service.py               | 32 +++++--
- .../services/test_app_dsl_service.py          | 96 +++++++++++++++++++
- 2 files changed, 119 insertions(+), 9 deletions(-)
+ api/services/app_dsl_service.py               |  32 +++-
+ .../services/test_app_dsl_service.py          | 154 ++++++++++++++++++
+ 2 files changed, 177 insertions(+), 9 deletions(-)
 
 diff --git a/api/services/app_dsl_service.py b/api/services/app_dsl_service.py
-index 5515f3ed17..a212b8149d 100644
+index 5515f3ed17..d440f877d2 100644
 --- a/api/services/app_dsl_service.py
 +++ b/api/services/app_dsl_service.py
 @@ -669,18 +669,32 @@ class AppDslService:
@@ -65,8 +69,8 @@ index 5515f3ed17..a212b8149d 100644
 +                                        code="workflow_knowledge_unresolved",
 +                                        path=f"workflow.graph.nodes.{node_index}.data.dataset_ids.{dataset_index}",
 +                                        message=(
-+                                            f"Knowledge base reference in node {node_title!r} could not be "
-+                                            f"restored in this workspace and must be reselected."
++                                            f"Knowledge base in node {node_title!r} is unavailable in the "
++                                            f"target workspace and must be reselected."
 +                                        ),
 +                                        details={"node_id": node.get("id"), "node_title": node_title},
 +                                    )
@@ -78,17 +82,21 @@ index 5515f3ed17..a212b8149d 100644
                  if not isinstance(raw_agent_packages, Mapping):
                      raise ValueError("agent_packages must be a mapping")
 diff --git a/api/tests/unit_tests/services/test_app_dsl_service.py b/api/tests/unit_tests/services/test_app_dsl_service.py
-index cc2ba0a6c2..1229cadcbb 100644
+index cc2ba0a6c2..b9c9cd2b12 100644
 --- a/api/tests/unit_tests/services/test_app_dsl_service.py
 +++ b/api/tests/unit_tests/services/test_app_dsl_service.py
-@@ -600,6 +600,102 @@ def test_create_or_update_app_removes_imported_workflow_viewport(monkeypatch: py
+@@ -600,6 +600,160 @@ def test_create_or_update_app_removes_imported_workflow_viewport(monkeypatch: py
      assert imported_graph["viewport"] == {"x": 100, "y": 200, "zoom": 1.5}
  
  
 +def _knowledge_import(
 +    monkeypatch: pytest.MonkeyPatch, dataset_ids: list[str], *, node_title: str = "Knowledge Retrieval"
 +) -> tuple[AppDslService, Mock]:
-+    """Import a one-node workflow whose knowledge-retrieval node carries ``dataset_ids``."""
++    """Import a two-node workflow whose second node is a knowledge-retrieval carrying ``dataset_ids``.
++
++    The leading start node is load-bearing: it is what makes the asserted warning path end in
++    ``nodes.1``, proving the index is the node's position in the graph rather than a constant.
++    """
 +    session = cast(Session, SimpleNamespace(add=Mock(), flush=Mock(), get=Mock()))
 +    service = AppDslService(session=session)
 +    app = SimpleNamespace(
@@ -153,7 +161,9 @@ index cc2ba0a6c2..1229cadcbb 100644
 +    warning = service._warnings[0]
 +    assert warning.code == "workflow_knowledge_unresolved"
 +    assert warning.path == "workflow.graph.nodes.1.data.dataset_ids.1"
-+    assert "Company docs" in warning.message
++    assert warning.message == (
++        "Knowledge base in node 'Company docs' is unavailable in the target workspace and must be reselected."
++    )
 +    assert warning.details == {"node_id": "kr", "node_title": "Company docs"}
 +
 +
@@ -179,6 +189,58 @@ index cc2ba0a6c2..1229cadcbb 100644
 +
 +    assert sync_draft_workflow.call_args.kwargs["graph"]["nodes"][1]["data"]["dataset_ids"] == [readable]
 +    assert service._warnings == []
++
++
++def test_create_or_update_app_reports_each_knowledge_node_separately(monkeypatch: pytest.MonkeyPatch) -> None:
++    """Two knowledge nodes must not be conflated: each warning names its own node and index."""
++    session = cast(Session, SimpleNamespace(add=Mock(), flush=Mock(), get=Mock()))
++    service = AppDslService(session=session)
++    app = SimpleNamespace(
++        id="app-1",
++        tenant_id=_TENANT_ID,
++        name="Workflow",
++        description="",
++        icon_type=IconType.EMOJI,
++        icon="robot",
++        icon_background="#FFFFFF",
++    )
++    workflow_service = SimpleNamespace(
++        get_draft_workflow=Mock(return_value=None),
++        sync_draft_workflow=Mock(return_value=SimpleNamespace(id="workflow-1")),
++    )
++    monkeypatch.setattr("services.app_dsl_service.WorkflowService", Mock(return_value=workflow_service))
++
++    service._create_or_update_app(
++        app=cast(App, app),
++        data={
++            "app": {"mode": AppMode.WORKFLOW.value},
++            "workflow": {
++                "graph": {
++                    "nodes": [
++                        {"id": "kr-a", "data": {"type": "knowledge-retrieval", "title": "Policies",
++                                                "dataset_ids": ["not-base64"]}},
++                        {"id": "start", "data": {"type": "start", "title": "Start"}},
++                        {"id": "kr-b", "data": {"type": "knowledge-retrieval", "title": "Manuals",
++                                                "dataset_ids": ["also-not-base64"]}},
++                    ],
++                    "edges": [],
++                }
++            },
++        },
++        account=Mock(id="account-1"),
++    )
++
++    assert [(w.path, w.details["node_id"], w.details["node_title"]) for w in service._warnings] == [
++        ("workflow.graph.nodes.0.data.dataset_ids.0", "kr-a", "Policies"),
++        ("workflow.graph.nodes.2.data.dataset_ids.0", "kr-b", "Manuals"),
++    ]
++
++
++def test_unresolved_knowledge_reference_promotes_the_import_status(monkeypatch: pytest.MonkeyPatch) -> None:
++    """The warning is only useful if the caller's status stops saying plain "completed"."""
++    service, _ = _knowledge_import(monkeypatch, ["not-base64"])
++
++    assert service._status_with_warnings(ImportStatus.COMPLETED) == ImportStatus.COMPLETED_WITH_WARNINGS
 +
 +
  def test_create_or_update_app_forwards_imported_agent_purge_ids(monkeypatch: pytest.MonkeyPatch) -> None:

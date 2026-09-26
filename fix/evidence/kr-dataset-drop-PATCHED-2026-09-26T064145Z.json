@@ -1,37 +1,37 @@
 {
-  "started_at": "2026-09-26T04:05:13Z",
+  "started_at": "2026-09-26T06:41:45Z",
   "base": "http://127.0.0.1:18092",
   "dsl_version": "0.7.0",
   "steps": [
     {
       "step": "logged-in",
-      "at": "2026-09-26T04:05:13Z",
+      "at": "2026-09-26T06:41:45Z",
       "tenant_a": "1d9ddb64…(sha256:d7324bb7611b)",
       "tenant_b": "d669662c…(sha256:82fea14a6882)",
       "tenants_differ": true
     },
     {
       "step": "dataset-created-in-A",
-      "at": "2026-09-26T04:05:13Z",
-      "dataset_id": "b27e2af4…(sha256:c0d3b4437a48)",
+      "at": "2026-09-26T06:41:45Z",
+      "dataset_id": "8c007d9f…(sha256:ca98c697e425)",
       "indexing_technique": "economy",
       "embedding_model": null,
       "note": "economy indexing: no embedding-model credentials required"
     },
     {
       "step": "source-app-in-A",
-      "at": "2026-09-26T04:05:13Z",
-      "app_id": "ce90c6e7…(sha256:fd41568d4238)",
+      "at": "2026-09-26T06:41:45Z",
+      "app_id": "c8fc11ec…(sha256:5bf9f64d59d0)",
       "import_status": "completed",
       "dataset_ids_bound": [
-        "b27e2af4…(sha256:c0d3b4437a48)"
+        "8c007d9f…(sha256:ca98c697e425)"
       ],
       "matches_dataset": true
     },
     {
       "step": "exported-from-A",
-      "at": "2026-09-26T04:05:13Z",
-      "yaml_sha256": "888109944e8fd6a28382150e13892d68343ed9dc69251691c52754bb1f1d6acb",
+      "at": "2026-09-26T06:41:45Z",
+      "yaml_sha256": "f415f96eed2883a9d1d9193ab38fe980c2c76d6dd81cd2bd8dd574cbdf145fda",
       "yaml_bytes": 1586,
       "dataset_ids_ciphertext_len": 64,
       "dataset_ids_is_ciphertext": true,
@@ -39,15 +39,15 @@
     },
     {
       "step": "control-1-same-tenant",
-      "at": "2026-09-26T04:05:13Z",
-      "artifact_sha256": "888109944e8fd6a28382150e13892d68343ed9dc69251691c52754bb1f1d6acb",
+      "at": "2026-09-26T06:41:45Z",
+      "artifact_sha256": "f415f96eed2883a9d1d9193ab38fe980c2c76d6dd81cd2bd8dd574cbdf145fda",
       "import_status": "completed",
       "warnings_key_present": true,
       "warnings": [],
       "response_redacted": {
-        "id": "032e6afb…(sha256:078ef74d6183)",
+        "id": "94f9b6d8…(sha256:61bc3cc920cc)",
         "status": "completed",
-        "app_id": "f7b00a20…(sha256:338a09dcaf18)",
+        "app_id": "219dd662…(sha256:2439c3d21b0d)",
         "app_mode": "workflow",
         "permission_keys": [],
         "current_dsl_version": "0.7.0",
@@ -56,15 +56,15 @@
         "warnings": []
       },
       "dataset_ids": [
-        "b27e2af4…(sha256:c0d3b4437a48)"
+        "8c007d9f…(sha256:ca98c697e425)"
       ],
       "preserved": true,
       "shows": "the exported artifact is intact and import does not drop ids in general"
     },
     {
       "step": "experiment-cross-tenant",
-      "at": "2026-09-26T04:05:13Z",
-      "artifact_sha256": "888109944e8fd6a28382150e13892d68343ed9dc69251691c52754bb1f1d6acb",
+      "at": "2026-09-26T06:41:45Z",
+      "artifact_sha256": "f415f96eed2883a9d1d9193ab38fe980c2c76d6dd81cd2bd8dd574cbdf145fda",
       "artifact_identical_to_control_1": true,
       "import_status": "completed-with-warnings",
       "warnings_key_present": true,
@@ -72,7 +72,7 @@
         {
           "code": "workflow_knowledge_unresolved",
           "path": "workflow.graph.nodes.1.data.dataset_ids.0",
-          "message": "Knowledge base reference in node 'Knowledge Retrieval' could not be restored in this workspace and must be reselected.",
+          "message": "Knowledge base in node 'Knowledge Retrieval' is unavailable in the target workspace and must be reselected.",
           "details": {
             "node_id": "kr",
             "node_title": "Knowledge Retrieval"
@@ -81,9 +81,9 @@
       ],
       "error": "",
       "response_redacted": {
-        "id": "bf146d14…(sha256:55a5722ce354)",
+        "id": "d2348769…(sha256:6455b436b0c7)",
         "status": "completed-with-warnings",
-        "app_id": "16719501…(sha256:79d10686d367)",
+        "app_id": "b4973cc7…(sha256:fe6bd83a4950)",
         "app_mode": "workflow",
         "permission_keys": [],
         "current_dsl_version": "0.7.0",
@@ -93,7 +93,7 @@
           {
             "code": "workflow_knowledge_unresolved",
             "path": "workflow.graph.nodes.1.data.dataset_ids.0",
-            "message": "Knowledge base reference in node 'Knowledge Retrieval' could not be restored in this workspace and must be reselected.",
+            "message": "Knowledge base in node 'Knowledge Retrieval' is unavailable in the target workspace and must be reselected.",
             "details": {
               "node_id": "kr",
               "node_title": "Knowledge Retrieval"
@@ -103,21 +103,21 @@
       },
       "dataset_ids": [],
       "dropped": true,
-      "shows": "the reference is absent from the persisted graph, and the import API response reported completed without a non-empty warnings list. Not checked: server logs, the web UI, or any other channel"
+      "shows": "the reference is absent from the persisted graph; the import API response reported 'completed-with-warnings' with a non-empty warnings list. Not checked: server logs, the web UI, or any other channel"
     },
     {
       "step": "control-2-plaintext-cross-tenant",
-      "at": "2026-09-26T04:05:14Z",
-      "artifact_sha256": "805ccbc499ff5a4b9d93ba66eb27bc7295042d60d2911fda50d68d3d82e27f0a",
+      "at": "2026-09-26T06:41:45Z",
+      "artifact_sha256": "937358829c8bb321d1a8418302a8a2237814625be5f15ab54eb333d669083f93",
       "artifact_identical_to_experiment": false,
       "artifact_diff": "the single dataset_ids element: ciphertext replaced by the plaintext UUID",
       "import_status": "completed",
       "warnings_key_present": true,
       "warnings": [],
       "response_redacted": {
-        "id": "382795dd…(sha256:06fe70e04018)",
+        "id": "22d5b1d5…(sha256:759c28834c2e)",
         "status": "completed",
-        "app_id": "761a9182…(sha256:701a8a2458dd)",
+        "app_id": "ef03e8e4…(sha256:bf736ae1df4a)",
         "app_mode": "workflow",
         "permission_keys": [],
         "current_dsl_version": "0.7.0",
@@ -126,7 +126,7 @@
         "warnings": []
       },
       "dataset_ids": [
-        "b27e2af4…(sha256:c0d3b4437a48)"
+        "8c007d9f…(sha256:ca98c697e425)"
       ],
       "preserved": true,
       "dataset_visible_to_target_tenant": false,
@@ -134,7 +134,7 @@
       "shows": "a readable id is written into the target tenant's graph even though that tenant's own dataset list does not contain it. So the element removed in the experiment was removed on the branch taken when decrypt_dataset_id returns None — not by an existence or ownership check, of which this path performs none"
     }
   ],
-  "finished_at": "2026-09-26T04:05:14Z",
+  "finished_at": "2026-09-26T06:41:45Z",
   "verdict": {
     "dropped_without_report": false,
     "control_1_preserved": true,

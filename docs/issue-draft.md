@@ -8,8 +8,9 @@ Target: `langgenius/dify`, baseline commit `8387590ace4a094de812b7847fc6a4c3a27c
 `1.17.1`, the current release). Suggested labels: `bug`. Do not add a security label — see "Why
 this is a bug report, not a vulnerability report" below.
 
-**Filing decision (see notes at the bottom): file as TWO issues.** CODEOWNERS routes the two
-carriers to different owners, so one combined issue lands on nobody in particular.
+**Filing decision (see notes at the bottom): file as TWO issues.** The two carriers need
+different-sized fixes — one is wiring into machinery that already exists, the other needs a
+response-schema change first — so a combined issue bundles a small decision with a larger one.
 
 ---
 
@@ -41,8 +42,9 @@ structured reporting for *six other* classes of unresolvable reference
 path for this exact situation.
 
 Verified on 1.17.1 (both reading the source and running it on a clean 1.17.1 stack), and
-originally on 1.16.0. `git blame` puts the app-DSL drop at 2026-04-09 and the RAG-pipeline drop at
-2025-09-18 — neither has been touched since.
+originally on 1.16.0. `git blame` dates the app-DSL comprehension to 2026-04-09 and the
+RAG-pipeline one to 2025-09-18; neither has been edited since, though the node-type test directly
+above the RAG-pipeline block was touched on 2026-03-15 by an enum move (#33445).
 
 ### Root cause
 
@@ -197,28 +199,37 @@ path under test (`api/services/system_feature_service.py:51, :106, :149` are the
 
 ### A patch, ready if you want it
 
-I have the app-DSL side written and tested against current `main`, but I have not opened a PR —
-the template asks for an assigned issue first. Happy to submit it if you assign this to me.
+I have the app-DSL side written, and I can open it as a PR against `main` whenever that is
+useful — the template asks for an associated issue, which is what this is.
 
 It replaces the comprehension with an explicit loop that appends a `DslImportWarning` on the
-discard branch, using only machinery that is already in that file. `api/services/app_dsl_service.py`
-+32 −9, plus four unit tests next to `test_create_or_update_app_removes_imported_workflow_viewport`
-(which already covers the viewport logic two lines above the same loop).
+discard branch, using only machinery already in that file: `api/services/app_dsl_service.py`
+**+23 −9**, plus five unit tests (**+154**) next to
+`test_create_or_update_app_removes_imported_workflow_viewport`, which covers the viewport handling
+immediately above the same loop.
+
+One externally visible change worth flagging: a cross-tenant import that loses a reference would
+return `COMPLETED_WITH_WARNINGS` instead of `COMPLETED`. Every existing consumer of the import
+result already accepts that status, and an import that loses nothing is unaffected.
 
 The decisions worth your objection, rather than the line count:
 
 - **`details` carries `node_id` and `node_title`, not the value that failed to decode.** Both the
   AES key and the IV derive from the tenant id, so echoing the ciphertext would widen exposure
   while helping nobody — the recipient cannot decode it or act on it. The dataset name is
-  genuinely unavailable here, since this path performs no database access at all.
+  genuinely unavailable, because `decrypt_dataset_id` performs no database access: it is pure
+  hashlib/AES/base64/uuid, which is precisely why it cannot tell a foreign reference from a
+  corrupt one.
 - **One warning per dropped reference**, matching the existing sites in `agent/dsl_service.py`;
   the per-element `path` keeps the original index.
 - **Empty strings are skipped, not reported** — an empty string was never a reference to lose.
 - **`code = "workflow_knowledge_unresolved"`**, following `agent_knowledge_unresolved`.
 
-Verified end-to-end by re-running the same reproduction against a patched build. The experiment
-returns `completed-with-warnings`; both controls stay at `completed` with `warnings: []`, so the
-change reports the real loss without inventing warnings for imports that lost nothing.
+Verified end-to-end by re-running the same reproduction against a patched build: the experiment
+returns `completed-with-warnings`, while both controls stay at `completed` with `warnings: []` —
+so the change reports the real loss without inventing warnings for imports that lost nothing.
+Both that run and the unit tests were executed on a **1.17.1** build, which is what my
+reproduction bed runs; the block being replaced is byte-identical at 1.17.1 and at `main`.
 
 The RAG-pipeline path needs its response schema extended before the same approach is expressible
 there, so it is not in this patch and gets its own issue.
@@ -227,20 +238,26 @@ there, so it is not in this patch and gets its own issue.
 
 ## Notes for whoever posts this (not part of the issue body)
 
-- **File as two issues.** This was previously an open judgement call; at 1.17.1 it has a factual
-  answer. `api/services/rag_pipeline/rag_pipeline_dsl_service.py` matches
-  `/api/services/rag_pipeline/ @JohnJyong` (`.github/CODEOWNERS:60`), while
-  `api/services/app_dsl_service.py` matches only `*` (`:7`) and `/api/` (`:37`). One combined
-  issue routes to nobody in particular; two route to different owners. Cross-link them.
-- **Do not lead with a PR.** `.github/PULL_REQUEST_TEMPLATE.md` requires an associated issue and
-  an assignment before a PR, and its checklist warns that a PR without prior discussion may be
-  closed. The order is: file the issue → ask to be assigned → then submit. The patch is written
-  and verified (`fix/`), so the issue can carry it inline — that keeps the flow they ask for while
-  removing the maintainer's biggest obstacle, which is that this cannot be reproduced in three
-  minutes (two tenants, two non-default flags). A source-level patch does not need reproducing to
-  be reviewed.
+- **File as two issues** — but not for the reason an earlier draft gave. CODEOWNERS governs
+  automatic *pull-request review* requests, not issue assignment, so it says nothing about where
+  an issue lands. It is still the right split, for reasons that hold on their own: the two
+  carriers need different-sized changes (the app-DSL side is wiring into machinery that already
+  exists; the RAG-pipeline side needs a response-schema change first), so one issue would bundle a
+  small decision with a larger one and stall on the larger. The ownership split
+  (`api/services/rag_pipeline/ @JohnJyong` at `.github/CODEOWNERS:60`, versus `app_dsl_service.py`
+  matching only `*` at `:7` and `/api/` at `:37`) is worth knowing because it predicts who reviews
+  each *PR*. Cross-link the two issues.
+- **Issue first, then the PR.** `.github/pull_request_template.md` (lowercase filename) asks for an
+  associated issue and `Fixes #<n>`, and its checklist warns that a PR without prior discussion may
+  be closed. At tag 1.17.1 it also required being assigned; that clause is gone on current `main`,
+  so an associated issue is now the stated bar. Either way the patch is written and verified
+  (`fix/`), so the issue can carry it inline — which removes the maintainer's biggest practical
+  obstacle, that this cannot be reproduced in three minutes (two tenants, two non-default flags).
+  A source-level patch does not need reproducing to be reviewed.
 - **Precedent worth knowing:** #42750 (merged 2026-09-25) is an external contribution to this same
   file, improving import diagnostics, with a maintainer as co-author. That path is open.
+- **The template asks that PRs created by an automated agent say so** in the description. Decide
+  how that applies before submitting; it is a question about the PR, not about this repository.
 - The evidence-repo link assumes `ikunfloyd/dify-migration-gaps` is pushed and public.
   Local commits are ahead of `origin/main` — push first, or the linked ledger will be stale
   relative to what the issue claims.

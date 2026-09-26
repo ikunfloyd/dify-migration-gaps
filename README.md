@@ -5,7 +5,8 @@ between environments (or between workspaces), pinned to **v1.17.1**.
 
 This is an independent analysis. Every claim here is backed by one of exactly two things:
 
-1. a **permalink into upstream source at a pinned commit**, or
+1. a **`path:line` anchor into upstream source at a pinned commit**, verified by opening that
+   line at that commit, or
 2. a **from-zero reproduction log** produced on a clean stack on my own machine.
 
 Nothing else is admissible. In particular this repository contains no material from any
@@ -34,7 +35,7 @@ baseline rather than two.
 
 | Path | What it is |
 |---|---|
-| `docs/upstream-facts.md` | Fact ledger — each claim graded *confirmed / drifted / refuted / unverified*, with its anchor |
+| `docs/upstream-facts.md` | Fact ledger — each claim graded *confirmed / corrected / live / inference / unverified*, with its anchor |
 | `docs/repro-log.md` | From-zero reproduction log, timestamped. **First line carries the kill date.** |
 | `docs/issue-draft.md` | Draft upstream issue. Not filed. Every sentence traces to a confirmed ledger row |
 | `evidence/` | Raw captured artifacts from the 1.16.0 runs (HTTP responses, exported DSL, container state) |

@@ -322,10 +322,13 @@ def main() -> int:
         response_redacted=redact_body(exp),
         dataset_ids=ids_exp,
         dropped=ids_exp == [],
+        # Derived from what this run actually observed, not asserted in advance: the same
+        # driver is used against patched builds, where the reported status differs.
         shows=(
-            "the reference is absent from the persisted graph, and the import API response "
-            "reported completed without a non-empty warnings list. Not checked: server logs, "
-            "the web UI, or any other channel"
+            "the reference is absent from the persisted graph; the import API response reported "
+            f"{exp.get('status')!r} with "
+            + ("a non-empty warnings list" if exp.get("warnings") else "no warnings")
+            + ". Not checked: server logs, the web UI, or any other channel"
         ),
     )
 

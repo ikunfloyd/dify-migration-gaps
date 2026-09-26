@@ -374,3 +374,42 @@ evidence.
 ### Kill date
 
 Still not armed. No upstream issue has been opened.
+
+---
+
+## 2026-09-26 — Before/after run against a patched build
+
+Not a defect reproduction: a check that the proposed fix in `fix/` does what it claims, and that it
+does not warn about imports that lost nothing. Same bed as the 1.17.1 section
+(`~/dify-oss-bed-1.17.1/docker`, project `difybed1171`), same driver, unmodified in substance.
+
+The patch was ported into the running 1.17.1 container rather than rebuilt from `main`: the block
+it replaces is byte-identical at both revisions, and the bed is what exists. Stated because it
+bounds the claim — the patch has been *executed* on 1.17.1, and only *applied and compiled* against
+`main`.
+
+| run | unpatched | patched |
+|---|---|---|
+| Control 1 — A → A, byte-identical artifact | `completed`, preserved | `completed`, preserved |
+| **Experiment — A → B** | `completed`, `warnings: []` | **`completed-with-warnings`**, one warning |
+| Control 2 — plaintext id → B | `completed`, preserved | `completed`, preserved |
+| `dropped_without_report` | `true` | `false` |
+
+Evidence: `fix/evidence/kr-dataset-drop-PATCHED-2026-09-26T064145Z.json`. Five unit tests were run
+in the same container against the patched service; all pass, and four of the five fail if the loop
+is reverted (the fifth pins behaviour that must not change).
+
+One driver defect found and fixed along the way, which had been latent since 2026-08-21: the
+experiment step's `shows` narration was a hardcoded sentence asserting that the response "reported
+completed without a non-empty warnings list". Against a patched build that sentence became false
+while sitting beside the JSON that contradicted it. It is now derived from the observed response.
+The earlier bundles are unaffected — the sentence was accurate for the runs that produced them —
+but a hardcoded narration in an evidence bundle was a latent way to publish something untrue, and
+the same class of mistake is worth watching for elsewhere.
+
+Afterwards the bed was restored to pristine 1.17.1 and the driver re-run to confirm the restoration:
+`dropped_without_report` back to `true`.
+
+### Kill date
+
+Still not armed. No upstream issue has been opened.
