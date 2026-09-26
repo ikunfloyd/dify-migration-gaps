@@ -195,13 +195,33 @@ needs `flask create-tenant` with both flags enabled — and, at 1.17.1, an expli
 or the command aborts on its language prompt in a non-TTY shell. Neither flag touches the import
 path under test (`api/services/system_feature_service.py:51, :106, :149` are the only readers).
 
-### Suggested direction (not a PR)
+### A patch, ready if you want it
 
-On the app-DSL path the `DslImportWarning` / `COMPLETED_WITH_WARNINGS` machinery is already in the
-same file and already used 24 lines away; wiring the decrypt-failure branch into it looks like the
-natural fix. The RAG-pipeline path needs the `warnings` field added to its response schema first,
-plus a `_warnings` list and `_status_with_warnings` in the service. Happy to open a PR for the
-app-DSL side.
+I have the app-DSL side written and tested against current `main`, but I have not opened a PR —
+the template asks for an assigned issue first. Happy to submit it if you assign this to me.
+
+It replaces the comprehension with an explicit loop that appends a `DslImportWarning` on the
+discard branch, using only machinery that is already in that file. `api/services/app_dsl_service.py`
++32 −9, plus four unit tests next to `test_create_or_update_app_removes_imported_workflow_viewport`
+(which already covers the viewport logic two lines above the same loop).
+
+The decisions worth your objection, rather than the line count:
+
+- **`details` carries `node_id` and `node_title`, not the value that failed to decode.** Both the
+  AES key and the IV derive from the tenant id, so echoing the ciphertext would widen exposure
+  while helping nobody — the recipient cannot decode it or act on it. The dataset name is
+  genuinely unavailable here, since this path performs no database access at all.
+- **One warning per dropped reference**, matching the existing sites in `agent/dsl_service.py`;
+  the per-element `path` keeps the original index.
+- **Empty strings are skipped, not reported** — an empty string was never a reference to lose.
+- **`code = "workflow_knowledge_unresolved"`**, following `agent_knowledge_unresolved`.
+
+Verified end-to-end by re-running the same reproduction against a patched build. The experiment
+returns `completed-with-warnings`; both controls stay at `completed` with `warnings: []`, so the
+change reports the real loss without inventing warnings for imports that lost nothing.
+
+The RAG-pipeline path needs its response schema extended before the same approach is expressible
+there, so it is not in this patch and gets its own issue.
 
 ---
 
@@ -212,11 +232,15 @@ app-DSL side.
   `/api/services/rag_pipeline/ @JohnJyong` (`.github/CODEOWNERS:60`), while
   `api/services/app_dsl_service.py` matches only `*` (`:7`) and `/api/` (`:37`). One combined
   issue routes to nobody in particular; two route to different owners. Cross-link them.
-- **Consider leading with a PR on the app-DSL side rather than an issue.** The change is small and
-  the machinery is already present, so it needs review rather than triage — and it sidesteps the
-  biggest practical obstacle, which is that a maintainer cannot reproduce this in three minutes
-  (two tenants, two non-default flags). A PR can carry a test; the existing test file already
-  covers all four encrypt/decrypt branches and is the obvious home for one covering the silence.
+- **Do not lead with a PR.** `.github/PULL_REQUEST_TEMPLATE.md` requires an associated issue and
+  an assignment before a PR, and its checklist warns that a PR without prior discussion may be
+  closed. The order is: file the issue → ask to be assigned → then submit. The patch is written
+  and verified (`fix/`), so the issue can carry it inline — that keeps the flow they ask for while
+  removing the maintainer's biggest obstacle, which is that this cannot be reproduced in three
+  minutes (two tenants, two non-default flags). A source-level patch does not need reproducing to
+  be reviewed.
+- **Precedent worth knowing:** #42750 (merged 2026-09-25) is an external contribution to this same
+  file, improving import diagnostics, with a maintainer as co-author. That path is open.
 - The evidence-repo link assumes `ikunfloyd/dify-migration-gaps` is pushed and public.
   Local commits are ahead of `origin/main` — push first, or the linked ledger will be stale
   relative to what the issue claims.

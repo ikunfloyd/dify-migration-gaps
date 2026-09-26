@@ -39,6 +39,7 @@ baseline rather than two.
 | `docs/issue-draft.md` | Draft upstream issue. Not filed. Every sentence traces to a confirmed ledger row |
 | `evidence/` | Raw captured artifacts from the 1.16.0 runs (HTTP responses, exported DSL, container state) |
 | `baselines/1.17.1/` | The 1.17.1 re-verification: anchor map, its own evidence bundles, bed snapshot |
+| `fix/` | A tested patch for the app-DSL carrier, with before/after evidence. Not submitted |
 | `scripts/` | Scripts that drive the reproduction, so a reader can rerun it |
 
 ## The gap this starts with
