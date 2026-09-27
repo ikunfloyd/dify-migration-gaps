@@ -52,9 +52,11 @@ structured reporting for *six other* classes of unresolvable reference
 path for this exact situation.
 
 Verified on 1.17.1 (both reading the source and running it on a clean 1.17.1 stack), and
-originally on 1.16.0. `git blame` dates the app-DSL comprehension to 2026-04-09 and the
-RAG-pipeline one to 2025-09-18; neither has been edited since, though the node-type test directly
-above the RAG-pipeline block was touched on 2026-03-15 by an enum move (#33445).
+originally on 1.16.0. The app-DSL comprehension was introduced by #17353 (2025-04-03) and the
+RAG-pipeline one by #25360 (2025-09-18); neither has been edited since. Note what `git blame`
+alone would show: the app-DSL lines blame to 2026-04-10 (#34869) and the RAG-pipeline node-type
+test above the block to 2026-03-15 (#33445), but both of those are reindentations from
+refactors — `match/case` conversion and an enum move — not changes to the logic.
 
 ### Root cause
 

@@ -27,7 +27,7 @@ does not.
 The analysis was first written against 1.16.0 and re-anchored to 1.17.1 — **1501 commits later** —
 on 2026-09-18: every fact relocated and re-graded, and every reproduction re-run on a fresh 1.17.1
 stack. 43 facts: the core finding stood, and no fact was overturned as a whole, though several
-supporting sub-claims were corrected or withdrawn — E1 and E6 each lost half. `git blame` puts the two defect sites at 2026-04-09 and 2025-09-18
+supporting sub-claims were corrected or withdrawn — E1 and E6 each lost half. The two defect sites were introduced by #17353 (2025-04-03, app-DSL) and #25360 (2025-09-18, RAG-pipeline)
 respectively; neither was touched in between. The old→new anchor comparison lives in
 [`baselines/1.17.1/anchor-map.md`](baselines/1.17.1/anchor-map.md) so the ledger states one
 baseline rather than two.
@@ -60,7 +60,8 @@ RAG-pipeline DSL import, originally listed only to bound the claim, turned out o
 in three ways: its export encryption is unconditional (no flag turns it off); its decoder has
 neither a plain-UUID short circuit nor post-decrypt UUID validation; and its import response has no
 `warnings` field to report into at all, even in principle. A repo-wide sweep at 1.17.1 confirms
-these two are the **only** silent-drop implementations — there is no third. The claim is therefore: workflow / advanced-chat
+the survey found exactly these two silent-drop implementations. Those greps are syntactic, so
+"none was found" is what the evidence supports, not "no third exists". The claim is therefore: workflow / advanced-chat
 apps with a `knowledge-retrieval` node, gated by `DSL_EXPORT_ENCRYPT_DATASET_ID` at its default of
 `true`; **and**, separately, RAG-pipeline DSL with a `knowledge-retrieval` node, which is not
 gated by that flag at all.

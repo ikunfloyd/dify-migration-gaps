@@ -1,16 +1,16 @@
 # Reproduction log
 
-> **KILL DATE — not yet armed.** No upstream issue has been opened. The rule, fixed in advance so
-> it is not renegotiated under sunk cost: *the day an upstream issue is opened, that date + 21 days
-> gets written here as an absolute date. If no maintainer has responded substantively by then, code
-> investment stops, the analysis is published as-is, and the line is closed.* Earliest date an issue
-> may be opened: **2026-09-02** (chosen so the window does not open during a stretch of low
-> availability —
-> upstream's stale workflow closes an issue after 15 days of inactivity plus a 3-day grace period
-> [`.github/workflows/stale.yml` at the pinned commit; an externally-controlled setting that may have
-> changed since], so an issue opened during a low-availability window gets closed underneath you).
-> Note the consequence: a 21-day kill date fires *after* the bot may already have closed the issue,
-> so the internal decision point sits around day 14.
+> **My own time budget for this line of work — not a deadline on anyone else.** Nobody upstream
+> owes this a reply, and an unanswered issue is a normal outcome on a busy repository. The rule
+> exists so that *I* do not keep pouring effort into it out of sunk cost: *21 days after an issue is
+> opened, that date gets written here, and on it I stop investing further engineering time and
+> publish the analysis as it stands.* Nothing about it asks upstream for anything.
+>
+> Two practical notes. Earliest sensible opening date was **2026-09-02**, chosen so the window did
+> not start during a stretch when I could not follow up. And upstream's stale workflow closes an
+> issue after 15 days of inactivity plus a 3-day grace period (`.github/workflows/stale.yml` at the
+> pinned commit — an externally controlled setting that may have changed since), so a 21-day budget
+> would outlast the bot; my own check-in point is therefore around day 14.
 
 **Anchors in this log are as-of their own section.** Sections dated 2026-08-21 and 2026-09-04 cite
 line numbers at 1.16.0 (`5c6372d`); the 2026-09-18 section and `docs/upstream-facts.md` cite 1.17.1
@@ -245,7 +245,10 @@ baseline moved and everything was re-done rather than argued about.
 ### What was checked before touching anything
 
 `git blame` at 1.17.1 dates the defect. The app-DSL drop (`:653-664`) was last touched
-`1117b6e72d7`, **2026-04-09**; the RAG-pipeline drop (`:571-580`) `85cda47c70a`, **2025-09-18** —
+`1117b6e72d7`, **2026-04-10** — but that commit is `refactor: convert appmode misc if/elif to
+match/case (#34869)`, which reindented the block rather than writing it; the logic came from
+`2e9997110a`, **2025-04-03** (#17353). The RAG-pipeline drop (`:571-580`) blames to
+`85cda47c70a`, **2025-09-18** (#25360), which did introduce it —
 a year to the day. `decrypt_dataset_id` (`:1107-1129`) splits between `2e9997110a1` (2025-04-03) and
 `598ec07c911` (2025-09-08). In `git diff 1.16.0..1.17.1` the comprehension lines appear only as
 *context*, never on either side of a hunk — the behaviour is stable across that span.
@@ -374,7 +377,7 @@ missing post-decrypt UUID validation (above), and that `RagPipelineImportRespons
 change really is a prerequisite. Those working notes are not committed; they were an instrument, not
 evidence.
 
-### Kill date
+### Time budget
 
 Still not armed. No upstream issue has been opened.
 
@@ -413,7 +416,7 @@ the same class of mistake is worth watching for elsewhere.
 Afterwards the bed was restored to pristine 1.17.1 and the driver re-run to confirm the restoration:
 `dropped_without_report` back to `true`.
 
-### Kill date
+### Time budget
 
 Still not armed. No upstream issue has been opened.
 
@@ -466,6 +469,6 @@ proven where two syntactic greps can only support "none was found". A `LICENSE` 
 `THIRD-PARTY-LICENSES.md` were added: the repo quotes ~46 lines of Dify source and ships a patch,
 and Apache 2.0 section 4(a) wants the licence travelling with them.
 
-### Kill date
+### Time budget
 
 Still not armed. No upstream issue has been opened.

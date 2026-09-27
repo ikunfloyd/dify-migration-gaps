@@ -44,7 +44,7 @@ Per-fact detail: [`anchor-map.md`](anchor-map.md).
 
 | site | last touched | age at 2026-09-18 |
 |---|---|---|
-| `app_dsl_service.py:653-664` (app-DSL drop) | `1117b6e72d7`, 2026-04-09 | 5 months |
+| `app_dsl_service.py:653-664` (app-DSL drop) | introduced `2e9997110a`, 2025-04-03 (#17353); blames to `1117b6e72d7`, 2026-04-10, a `match/case` reindentation | 17 months |
 | `rag_pipeline_dsl_service.py:571-580` (RAG-pipeline drop) | `85cda47c70a`, 2025-09-18 | 12 months |
 | `app_dsl_service.py:1107-1129` (`decrypt_dataset_id`) | `2e9997110a1` 2025-04-03 / `598ec07c911` 2025-09-08 | 12–17 months |
 
