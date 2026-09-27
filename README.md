@@ -43,7 +43,7 @@ baseline rather than two.
 | `baselines/1.17.1/` | The 1.17.1 re-verification: anchor map, its own evidence bundles, bed snapshot |
 | `fix/` | A tested patch for the app-DSL carrier, with before/after evidence. Not submitted |
 | `scripts/` | Scripts that drive the reproduction, so a reader can rerun it. **Point them at a throwaway stack** |
-| `LICENSE` · `THIRD-PARTY-LICENSES.md` | MIT for this analysis; Dify's own licence for the source it quotes, with an inventory of what is quoted |
+| `LICENSE` · `THIRD-PARTY-LICENSES.md` | MIT covers this repository's own work — the analysis, the scripts, the captured evidence. Source quoted from Dify stays under Dify's licence; `THIRD-PARTY-LICENSES.md` reproduces it and inventories every excerpt |
 
 ## The gap this starts with
 

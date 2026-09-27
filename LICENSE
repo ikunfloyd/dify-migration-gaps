@@ -19,13 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-The MIT terms above cover this repository's own work: the analysis, the
-reproduction scripts and the captured evidence.
-
-This repository also quotes source from langgenius/dify and ships a patch
-against it. Those excerpts remain under Dify's own licence — a modified Apache
-License 2.0 with additional conditions — reproduced in THIRD-PARTY-LICENSES.md
-together with an inventory of what is quoted and from which revision.
