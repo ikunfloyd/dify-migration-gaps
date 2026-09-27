@@ -321,7 +321,8 @@ quoting the decisive lines rather than adjusting the old number to fit. Every fa
 anything other than "moved" then went through a second, adversarial pass instructed to refute the
 first.
 
-43 facts: 2 same anchor, 29 moved, 8 need rewording, 4 changed, **0 refuted**. Two refutations
+43 facts: 2 same anchor, 29 moved, 8 need rewording, 4 changed, **none overturned as a whole**
+(individual sub-claims inside the reworded and changed rows did fall — E1, E6). Two refutations
 succeeded, both narrowing an overstatement rather than overturning a fact — D6 had been called a
 reword on the grounds that a `target_tenant_id` local was new behaviour (it is not; the 1.16.0
 assignment sat in the same create-branch), and E2 had been called a change when only the anchors and

@@ -19,7 +19,8 @@ missed.
 
 ## Headline
 
-**Nothing was refuted.** 43 facts re-graded, zero overturned. The defect is intact in both carriers,
+**No fact was overturned as a whole.** 43 re-graded; within the reworded and changed rows,
+individual sub-claims did fall (E1, E6). The defect is intact in both carriers,
 the reporting channel it should use is intact and now used in *more* places, and the scope
 boundaries still hold.
 
@@ -88,7 +89,7 @@ removes it: the source tenant's dataset is given a real indexed document first.
 
 The control now returns a non-empty result through the full retrieval path, so it is demonstrably
 *not* running the experiment's short circuit. Evidence:
-[`evidence/kr-runtime-tighter-control-20260927T013449Z.json`](evidence/).
+[`evidence/kr-runtime-tighter-control-20260927T013449Z.json`](evidence/kr-runtime-tighter-control-20260927T013449Z.json).
 
 What this still does **not** establish, and must not be claimed: that an operator can tell the two
 apart from the node result. A dropped reference and a genuine zero-hit search both yield
