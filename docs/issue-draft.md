@@ -1,8 +1,17 @@
 # Upstream issue draft
 
-Not filed. Draft only — review before anything gets posted to `langgenius/dify`. Every
-sentence below traces to a **confirmed** or **confirmed + live** row in `docs/upstream-facts.md`;
-if you add a claim while editing, check it against the ledger (or grade it there) before it ships.
+**Working draft. The postable versions are [`issue-a-app-dsl.md`](issue-a-app-dsl.md) and
+[`issue-b-rag-pipeline.md`](issue-b-rag-pipeline.md)** — those are arranged to fit Dify's bug-report
+template, which has only three free-text areas and asks not to be modified.
+
+This file is kept because it carries the full argument in one piece, including material the two
+issues leave out for length: the migration-package mover (R6), the complete table of existing
+`DslImportWarning` sites, and the reasoning behind the filing decision. Use it as the source when
+answering a maintainer's follow-up; do not post it as-is.
+
+Every sentence here traces to a **confirmed** or **confirmed + live** row in
+`docs/upstream-facts.md`; if you add a claim while editing, check it against the ledger (or grade
+it there) before it ships.
 
 Target: `langgenius/dify`, baseline commit `8387590ace4a094de812b7847fc6a4c3a27cd52b` (tag
 `1.17.1`, the current release). Suggested labels: `bug`. Do not add a security label — see "Why
