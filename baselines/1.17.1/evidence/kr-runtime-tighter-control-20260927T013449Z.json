@@ -1,19 +1,19 @@
 {
-  "started_at": "2026-09-18T12:09:17Z",
+  "started_at": "2026-09-27T01:34:45Z",
   "base": "http://127.0.0.1:18092",
   "purpose": "tighter control for D9 -- control dataset has indexed content",
   "query": "What are the three phases of the zarnathine protocol?",
   "steps": [
     {
       "step": "logged-in",
-      "at": "2026-09-18T12:09:17Z"
+      "at": "2026-09-27T01:34:45Z"
     },
     {
       "step": "dataset-created-in-C",
-      "at": "2026-09-18T12:09:17Z",
+      "at": "2026-09-27T01:34:45Z",
       "dataset": {
-        "id": "b54a015f…(sha256:c8c89c876341)",
-        "name": "kbTight-2026-09-18T12:09:17Z",
+        "id": "fc5db454…(sha256:3dce3699011b)",
+        "name": "kbTight-2026-09-27T01:34:45Z",
         "description": "",
         "provider": "vendor",
         "permission": "only_me",
@@ -24,9 +24,9 @@
         "word_count": 0,
         "created_by": "902861f9…(sha256:f518bae5c931)",
         "author_name": "c-1171",
-        "created_at": 1789733358,
+        "created_at": 1790472885,
         "updated_by": "902861f9…(sha256:f518bae5c931)",
-        "updated_at": 1789733358,
+        "updated_at": 1790472885,
         "embedding_model": null,
         "embedding_model_provider": null,
         "embedding_available": null,
@@ -99,18 +99,18 @@
     },
     {
       "step": "file-uploaded",
-      "at": "2026-09-18T12:09:17Z",
+      "at": "2026-09-27T01:34:45Z",
       "file": {
-        "id": "321aa52d…(sha256:f587eafb7456)",
+        "id": "37e0bc19…(sha256:97bce81f5679)",
         "reference": null,
         "name": "zarnathine.txt",
         "size": 532,
         "extension": "txt",
         "mime_type": "text/plain",
         "created_by": "902861f9…(sha256:f518bae5c931)",
-        "created_at": 1789733357,
+        "created_at": 1790472885,
         "preview_url": null,
-        "source_url": "/files/321aa52d…(sha256:f587eafb7456)/file-preview?timestamp=1789733357&nonce=33b374aa6b17a84a3169ba586d4334c2&sign=emZ8x4GD2uyF7mav2WIdFftV45RAxxxMlL4t2sntNn4%3D",
+        "source_url": "/files/37e0bc19…(sha256:97bce81f5679)/file-preview?timestamp=<stripped>&nonce=<stripped>&sign=<stripped>",
         "original_url": null,
         "user_id": null,
         "tenant_id": "e3c43cae…(sha256:06edcd2aa354)",
@@ -120,42 +120,42 @@
     },
     {
       "step": "document-created",
-      "at": "2026-09-18T12:09:17Z",
+      "at": "2026-09-27T01:34:45Z",
       "document": {
         "dataset": {
-          "id": "b54a015f…(sha256:c8c89c876341)",
-          "name": "kbTight-2026-09-18T12:09:17Z",
+          "id": "fc5db454…(sha256:3dce3699011b)",
+          "name": "kbTight-2026-09-27T01:34:45Z",
           "description": "",
           "permission": "only_me",
           "data_source_type": "upload_file",
           "indexing_technique": "economy",
           "created_by": "902861f9…(sha256:f518bae5c931)",
-          "created_at": 1789733358
+          "created_at": 1790472885
         },
         "documents": [
           {
-            "id": "aa4288b5…(sha256:fc1ac9b60518)",
+            "id": "de62d2e2…(sha256:ce71a745e3e2)",
             "position": 1,
             "data_source_type": "upload_file",
             "data_source_info": {
-              "upload_file_id": "321aa52d…(sha256:f587eafb7456)"
+              "upload_file_id": "37e0bc19…(sha256:97bce81f5679)"
             },
             "data_source_detail_dict": {
               "upload_file": {
-                "id": "321aa52d…(sha256:f587eafb7456)",
+                "id": "37e0bc19…(sha256:97bce81f5679)",
                 "name": "zarnathine.txt",
                 "size": 532,
                 "extension": "txt",
                 "mime_type": "text/plain",
                 "created_by": "902861f9…(sha256:f518bae5c931)",
-                "created_at": 1789733357.573412
+                "created_at": 1790472885.448445
               }
             },
-            "dataset_process_rule_id": "d8c61c7e…(sha256:ebecd2854b2a)",
+            "dataset_process_rule_id": "d003838d…(sha256:6dca214bb30b)",
             "name": "zarnathine.txt",
             "created_from": "web",
             "created_by": "902861f9…(sha256:f518bae5c931)",
-            "created_at": 1789733358,
+            "created_at": 1790472885,
             "tokens": null,
             "indexing_status": "waiting",
             "error": null,
@@ -172,22 +172,22 @@
             "need_summary": false
           }
         ],
-        "batch": "20260918120917558518"
+        "batch": "20260927013445676051"
       }
     },
     {
       "step": "document-indexed",
-      "at": "2026-09-18T12:09:20Z",
+      "at": "2026-09-27T01:34:48Z",
       "indexing_status": {
         "data": [
           {
-            "id": "aa4288b5…(sha256:fc1ac9b60518)",
+            "id": "de62d2e2…(sha256:ce71a745e3e2)",
             "indexing_status": "completed",
-            "processing_started_at": 1789733357,
-            "parsing_completed_at": 1789733357,
-            "cleaning_completed_at": 1789733357,
-            "splitting_completed_at": 1789733357,
-            "completed_at": 1789733357,
+            "processing_started_at": 1790472885,
+            "parsing_completed_at": 1790472885,
+            "cleaning_completed_at": 1790472885,
+            "splitting_completed_at": 1790472885,
+            "completed_at": 1790472885,
             "paused_at": null,
             "error": null,
             "error_code": null,
@@ -202,17 +202,122 @@
     },
     {
       "step": "hit-testing",
-      "at": "2026-09-18T12:09:20Z",
-      "http": 400,
-      "records": 0
+      "at": "2026-09-27T01:34:49Z",
+      "http": 200,
+      "records": 2,
+      "response": {
+        "query": {
+          "content": "What are the three phases of the zarnathine protocol?"
+        },
+        "records": [
+          {
+            "segment": {
+              "id": "d31be6e5…(sha256:55f27424da36)",
+              "position": 1,
+              "document_id": "de62d2e2…(sha256:ce71a745e3e2)",
+              "content": "Zarnathine Protocol Overview\n\nThe zarnathine protocol is a fictitious reconciliation procedure invented solely for this\nreproduction. It has three phases: quillanth intake, morvex balancing, and final drenthal\nsettlement. A quillanth intake record is considered valid when its drenthal checksum matches\nthe morvex ledger entry for the same period.",
+              "sign_content": null,
+              "answer": null,
+              "word_count": 347,
+              "tokens": 0,
+              "keywords": [
+                "fictitious",
+                "Zarnathine",
+                "zarnathine",
+                "intake",
+                "Protocol",
+                "quillanth",
+                "protocol",
+                "Overview",
+                "drenthal",
+                "morvex"
+              ],
+              "index_node_id": "2a613d81…(sha256:07e2a3e004b6)",
+              "index_node_hash": "560006453be2cf5df7cf10bd1a6ae2b70f60fd82446c3cad69c6245e24694f0a",
+              "hit_count": 0,
+              "enabled": true,
+              "disabled_at": null,
+              "disabled_by": null,
+              "status": "completed",
+              "created_by": "902861f9…(sha256:f518bae5c931)",
+              "created_at": 1790472886,
+              "indexing_at": 1790472885,
+              "completed_at": 1790472885,
+              "error": null,
+              "stopped_at": null,
+              "document": {
+                "id": "de62d2e2…(sha256:ce71a745e3e2)",
+                "data_source_type": "upload_file",
+                "name": "zarnathine.txt",
+                "doc_type": null,
+                "doc_metadata": null
+              }
+            },
+            "child_chunks": [],
+            "score": 0.0,
+            "tsne_position": null,
+            "files": [],
+            "summary": null
+          },
+          {
+            "segment": {
+              "id": "6f4c7e46…(sha256:213b23089a71)",
+              "position": 2,
+              "document_id": "de62d2e2…(sha256:ce71a745e3e2)",
+              "content": "Operators performing a zarnathine reconciliation should verify the drenthal checksum before\nclosing the period. If the morvex ledger disagrees, the quillanth intake must be replayed.",
+              "sign_content": null,
+              "answer": null,
+              "word_count": 182,
+              "tokens": 0,
+              "keywords": [
+                "zarnathine",
+                "period",
+                "closing",
+                "Operators",
+                "verify",
+                "performing",
+                "drenthal",
+                "reconciliation",
+                "morvex",
+                "checksum"
+              ],
+              "index_node_id": "ca965354…(sha256:82ffd8b779d4)",
+              "index_node_hash": "413c82a26ad4617c5685647802208f3d878e444f8dcc3732742783fa6e07f280",
+              "hit_count": 0,
+              "enabled": true,
+              "disabled_at": null,
+              "disabled_by": null,
+              "status": "completed",
+              "created_by": "902861f9…(sha256:f518bae5c931)",
+              "created_at": 1790472886,
+              "indexing_at": 1790472885,
+              "completed_at": 1790472885,
+              "error": null,
+              "stopped_at": null,
+              "document": {
+                "id": "de62d2e2…(sha256:ce71a745e3e2)",
+                "data_source_type": "upload_file",
+                "name": "zarnathine.txt",
+                "doc_type": null,
+                "doc_metadata": null
+              }
+            },
+            "child_chunks": [],
+            "score": 0.0,
+            "tsne_position": null,
+            "files": [],
+            "summary": null
+          }
+        ]
+      }
     },
     {
       "step": "source-app-in-C",
-      "at": "2026-09-18T12:09:20Z",
+      "at": "2026-09-27T01:34:49Z",
       "app": {
-        "id": "a2ad72ca…(sha256:673b6f4e6d5c)",
+        "id": "4632d7b3…(sha256:5a672c8584c9)",
         "status": "completed",
-        "app_id": "6a2fe0a3…(sha256:37827aeef1be)",
+        "app_id": "0cefe6da…(sha256:4ebedf51dea1)",
         "app_mode": "workflow",
         "permission_keys": [],
         "current_dsl_version": "0.7.0",
@@ -223,16 +328,16 @@
     },
     {
       "step": "exported-from-C",
-      "at": "2026-09-18T12:09:20Z",
-      "sha256": "5efce4c9fb9c9ec95b6fc4a2ed02116e42eeb7027f4a1c0bf241c073f3f2c5b5"
+      "at": "2026-09-27T01:34:49Z",
+      "sha256": "22a3e4700e920480c45e0d789568645ae766a7f9687ccec00f8bedcb981e0eb6"
     },
     {
       "step": "cross-tenant-import-into-D",
-      "at": "2026-09-18T12:09:20Z",
+      "at": "2026-09-27T01:34:49Z",
       "app": {
-        "id": "833d296e…(sha256:2386187d61ac)",
+        "id": "a153c580…(sha256:3255abc6ccb3)",
         "status": "completed",
-        "app_id": "fc03ac88…(sha256:f633c7b5f588)",
+        "app_id": "7a790cbc…(sha256:f98274ef160c)",
         "app_mode": "workflow",
         "permission_keys": [],
         "current_dsl_version": "0.7.0",
@@ -243,16 +348,16 @@
     },
     {
       "step": "persisted-dataset-ids",
-      "at": "2026-09-18T12:09:20Z",
+      "at": "2026-09-27T01:34:49Z",
       "control_C": 1,
       "experiment_D": 0
     },
     {
       "step": "control-run-in-C",
-      "at": "2026-09-18T12:09:21Z",
+      "at": "2026-09-27T01:34:49Z",
       "http": 200,
       "response": {
-        "id": "29b06c35…(sha256:3f2360630643)",
+        "id": "55c6d0dc…(sha256:82458f973694)",
         "index": 1,
         "predecessor_node_id": null,
         "node_id": "kr",
@@ -288,16 +393,16 @@
                 "_source": "knowledge",
                 "child_chunks": [],
                 "data_source_type": "upload_file",
-                "dataset_id": "b54a015f…(sha256:c8c89c876341)",
-                "dataset_name": "kbTight-2026-09-18T12:09:17Z",
+                "dataset_id": "fc5db454…(sha256:3dce3699011b)",
+                "dataset_name": "kbTight-2026-09-27T01:34:45Z",
                 "doc_metadata": null,
-                "document_id": "aa4288b5…(sha256:fc1ac9b60518)",
+                "document_id": "de62d2e2…(sha256:ce71a745e3e2)",
                 "document_name": "zarnathine.txt",
                 "position": 1,
                 "retriever_from": "workflow",
                 "score": 0.42049436979066884,
                 "segment_hit_count": 1,
-                "segment_id": "55dd58d1…(sha256:057aaa955434)",
+                "segment_id": "d31be6e5…(sha256:55f27424da36)",
                 "segment_index_node_hash": "560006453be2cf5df7cf10bd1a6ae2b70f60fd82446c3cad69c6245e24694f0a",
                 "segment_position": 1,
                 "segment_word_count": 347
@@ -312,16 +417,16 @@
                 "_source": "knowledge",
                 "child_chunks": [],
                 "data_source_type": "upload_file",
-                "dataset_id": "b54a015f…(sha256:c8c89c876341)",
-                "dataset_name": "kbTight-2026-09-18T12:09:17Z",
+                "dataset_id": "fc5db454…(sha256:3dce3699011b)",
+                "dataset_name": "kbTight-2026-09-27T01:34:45Z",
                 "doc_metadata": null,
-                "document_id": "aa4288b5…(sha256:fc1ac9b60518)",
+                "document_id": "de62d2e2…(sha256:ce71a745e3e2)",
                 "document_name": "zarnathine.txt",
                 "position": 2,
                 "retriever_from": "workflow",
                 "score": 0.14132686562361013,
                 "segment_hit_count": 1,
-                "segment_id": "337de287…(sha256:96f872015eb4)",
+                "segment_id": "6f4c7e46…(sha256:213b23089a71)",
                 "segment_index_node_hash": "413c82a26ad4617c5685647802208f3d878e444f8dcc3732742783fa6e07f280",
                 "segment_position": 2,
                 "segment_word_count": 182
@@ -333,14 +438,14 @@
         },
         "status": "succeeded",
         "error": null,
-        "elapsed_time": 1.1745037509999747,
+        "elapsed_time": 0.03165000100125326,
         "execution_metadata": {
           "total_tokens": 0,
           "total_price": "0.0",
           "currency": "USD"
         },
         "extras": {},
-        "created_at": 1789733361,
+        "created_at": 1790472889,
         "created_by_role": "account",
         "created_by_account": {
           "id": "902861f9…(sha256:f518bae5c931)",
@@ -348,7 +453,7 @@
           "email": "c-1171@example.invalid"
         },
         "created_by_end_user": null,
-        "finished_at": 1789733361,
+        "finished_at": 1790472889,
         "inputs_truncated": false,
         "outputs_truncated": false,
         "process_data_truncated": false
@@ -356,10 +461,10 @@
     },
     {
       "step": "experiment-run-in-D",
-      "at": "2026-09-18T12:09:21Z",
+      "at": "2026-09-27T01:34:49Z",
       "http": 200,
       "response": {
-        "id": "9080e7d3…(sha256:bebce56bf45d)",
+        "id": "d548dea7…(sha256:2bfa9cd4b711)",
         "index": 1,
         "predecessor_node_id": null,
         "node_id": "kr",
@@ -391,14 +496,14 @@
         },
         "status": "succeeded",
         "error": null,
-        "elapsed_time": 0.0011221250000517102,
+        "elapsed_time": 0.0018193750001955777,
         "execution_metadata": {
           "total_tokens": 0,
           "total_price": "0.0",
           "currency": "USD"
         },
         "extras": {},
-        "created_at": 1789733361,
+        "created_at": 1790472889,
         "created_by_role": "account",
         "created_by_account": {
           "id": "e664c524…(sha256:33209d8557bc)",
@@ -406,14 +511,14 @@
           "email": "d-1171@example.invalid"
         },
         "created_by_end_user": null,
-        "finished_at": 1789733361,
+        "finished_at": 1790472889,
         "inputs_truncated": false,
         "outputs_truncated": false,
         "process_data_truncated": false
       }
     }
   ],
-  "finished_at": "2026-09-18T12:09:21Z",
+  "finished_at": "2026-09-27T01:34:49Z",
   "verdict": {
     "control_dataset_had_indexed_content": true,
     "control_status": "succeeded",

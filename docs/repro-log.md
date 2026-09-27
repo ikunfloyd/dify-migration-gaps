@@ -4,7 +4,8 @@
 > it is not renegotiated under sunk cost: *the day an upstream issue is opened, that date + 21 days
 > gets written here as an absolute date. If no maintainer has responded substantively by then, code
 > investment stops, the analysis is published as-is, and the line is closed.* Earliest date an issue
-> may be opened: **2026-09-02** (no public activity within two weeks either side of a relocation —
+> may be opened: **2026-09-02** (chosen so the window does not open during a stretch of low
+> availability —
 > upstream's stale workflow closes an issue after 15 days of inactivity plus a 3-day grace period
 > [`.github/workflows/stale.yml` at the pinned commit; an externally-controlled setting that may have
 > changed since], so an issue opened during a low-availability window gets closed underneath you).
@@ -247,7 +248,7 @@ baseline moved and everything was re-done rather than argued about.
 `1117b6e72d7`, **2026-04-09**; the RAG-pipeline drop (`:571-580`) `85cda47c70a`, **2025-09-18** —
 a year to the day. `decrypt_dataset_id` (`:1107-1129`) splits between `2e9997110a1` (2025-04-03) and
 `598ec07c911` (2025-09-08). In `git diff 1.16.0..1.17.1` the comprehension lines appear only as
-*context*, never on either side of a hunk. Across 1501 commits nobody edited them.
+*context*, never on either side of a hunk — the behaviour is stable across that span.
 
 Also checked before building anything: no upstream issue reports this. Three searches
 (`dataset_ids`; knowledge-retrieval + import + workspace; `DslImportWarning` /
@@ -348,8 +349,9 @@ Two *propagation* paths were missing from the ledger, though, and one of them ma
 
 - **The migration-package mover** (`services/data_migration/`) — upstream's own cross-tenant bulk
   mover, i.e. the tool an operator would actually reach for to do what this analysis does by hand.
-  It delegates to the app-DSL carrier both ways and adds a second layer of silence: `import_service.py:345`
-  accepts `COMPLETED_WITH_WARNINGS` as success and never reads the list. Fixing the app-DSL branch
+It delegates to the app-DSL carrier both ways and does not read the warning channel
+  either: `import_service.py:345` treats `COMPLETED_WITH_WARNINGS` as success without inspecting
+  the list. Fixing the app-DSL branch
   alone would not surface anything here. Recorded as R6/S6 and, because it has **not** been run,
   fenced by new do-not-claim #14.
 - The recommended-app catalog / explore templates, same delegation, same silence.
@@ -409,6 +411,59 @@ the same class of mistake is worth watching for elsewhere.
 
 Afterwards the bed was restored to pristine 1.17.1 and the driver re-run to confirm the restoration:
 `dropped_without_report` back to `true`.
+
+### Kill date
+
+Still not armed. No upstream issue has been opened.
+
+---
+
+## 2026-09-27 — Pre-publication review
+
+Before making the repository public, an adversarial pass over the patch, the prose and the history.
+Recorded here because several of its findings were defects in this log and in the evidence, not in
+Dify.
+
+**Two things in the published evidence were wrong, and both are fixed by re-running rather than by
+editing the bundle.**
+
+The tighter-control section above said the driver "confirms via hit-testing" before building the
+app. The bundle for that run records `http: 400, records: 0` — the call failed and the script
+recorded the status without checking it, so a failed step was narrated as a successful
+confirmation. The cause: `retrieval_model` must be supplied in full. Omitting it defaults to
+semantic search, which on a bed with no embedding model configured returns
+`"Default model not found for text-embedding"`; supplying it partially fails the same way. The
+driver now sends the complete keyword configuration and raises if the corpus does not come back
+retrievable. Re-run clean on 2026-09-27: `http: 200, records: 2`.
+
+The same bundle also carried an HMAC-signed file-preview URL with its `nonce` and `sign` intact.
+`redact_body` substitutes UUID-shaped strings only — it is a targeted scrubber, and signed query
+parameters are not UUID-shaped, so they passed straight through. They are authentication material
+and prove nothing about the defect. They are now stripped by name, and the omission is called out
+in the function so the next thing a response starts carrying gets considered rather than assumed.
+
+A third, latent: the experiment step recorded `dataset_ids` unredacted while both controls
+redacted theirs. It never leaked, for the only reason that matters here — that list is empty
+whenever the defect reproduces. It would have leaked the moment it did not.
+
+The 2026-09-18 tighter-control bundle is therefore replaced by the 2026-09-27 re-run rather than
+corrected in place. Same bed restored to pristine 1.17.1 first, so it measures the defect and not
+the patch; the verdict is unchanged (control 2 records, experiment 0).
+
+**Wording changed, which an append-only log should say out loud.** Two passages framed the age of
+the code as a comment on upstream's attention ("across 1501 commits nobody edited them") and
+described the migration mover as adding "a second layer of silence". Code age shows persistence,
+not neglect, and the mover not reading the warning list is a mechanism, not an accusation. Both
+were reworded. No observation was altered — the anchors, dates and measurements are as they were.
+
+**Also corrected, from the same pass:** the front page described the ledger's grade vocabulary
+wrongly and promised permalinks where the repo carries `path:line` anchors; "0 refuted" overstated
+a result in which two sub-claims (E1, E6) were in fact refuted; a CODEOWNERS sentence survived in
+the ledger claiming it routes issues, which it does not; "the failure is not surfaced anywhere"
+outran the two channels actually examined; and "there is no third implementation" was stated as
+proven where two syntactic greps can only support "none was found". A `LICENSE` and a
+`THIRD-PARTY-LICENSES.md` were added: the repo quotes ~46 lines of Dify source and ships a patch,
+and Apache 2.0 section 4(a) wants the licence travelling with them.
 
 ### Kill date
 

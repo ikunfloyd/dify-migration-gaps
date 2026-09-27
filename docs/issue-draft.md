@@ -36,7 +36,8 @@ At execution time it doesn't surface either — the node returns `SUCCEEDED` wit
 same shape as a query that legitimately matched nothing.
 
 This is not a report about the encryption itself — see "What this is not" below. It's that the
-failure to resolve a reference isn't surfaced anywhere, even though the codebase already ships
+failure to resolve a reference isn't surfaced in the import response or at execution — the two
+channels I checked — even though the codebase already ships
 structured reporting for *six other* classes of unresolvable reference
 (`ImportStatus.COMPLETED_WITH_WARNINGS` / `DslImportWarning`), one of which is used by a sibling
 path for this exact situation.

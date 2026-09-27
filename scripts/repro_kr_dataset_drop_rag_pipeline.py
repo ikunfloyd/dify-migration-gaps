@@ -15,6 +15,11 @@ Source anchors this is testing live (api/services/rag_pipeline/rag_pipeline_dsl_
     rag_pipeline_import.py:51-57), has no `warnings` field at all -- unlike AppImportResponseModel,
     there is no channel to report into even if someone wanted to.
 
+!! Point --base at a throwaway Dify stack, never a real one. These drivers create datasets, apps
+   and workflow drafts in both tenants and leave them behind; the reproduction needs two tenants
+   on one instance, which a stock install has no route to create. Nothing here deletes or
+   overwrites, but nothing cleans up either.
+
 Usage:
     python3 repro_kr_dataset_drop_rag_pipeline.py \
         --base http://127.0.0.1:18091 \

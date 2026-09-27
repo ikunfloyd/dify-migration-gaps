@@ -20,9 +20,16 @@ Design notes that matter for the credibility of the output:
     surviving-but-unresolvable one, which is why nothing here relies on the UI.
   * The AES key is sha256(tenant_id), so a bundle carrying both a tenant UUID and the ciphertext
     would let a reader recover the dataset UUID. No *complete* tenant UUID is written: `redact_id`
-    emits an 8-hex prefix plus a hash prefix, leaving on the order of 88 bits unknown, which is
-    what makes the recovery infeasible rather than merely inconvenient. It is not anonymisation --
+    emits an 8-hex prefix plus a hash prefix. These ids are uuid4 (`models/account.py`, Tenant.id
+    is `insert_default=lambda: str(uuid4())`), so 122 of the 128 bits are random; the prefix
+    discloses 32 of them, leaving 90 unknown. That is what makes the recovery infeasible rather
+    than merely inconvenient. It is not anonymisation --
     see `redact_id` -- and the prefix does travel in the same file as the ciphertext.
+
+!! Point --base at a throwaway Dify stack, never a real one. These drivers create datasets, apps
+   and workflow drafts in both tenants and leave them behind; the reproduction needs two tenants
+   on one instance, which a stock install has no route to create. Nothing here deletes or
+   overwrites, but nothing cleans up either.
 
 Usage:
     python3 repro_kr_dataset_drop.py \
@@ -71,6 +78,17 @@ def redact_id(value: str) -> str:
     return f"{value[:8]}…(sha256:{sha256(value)[:12]})"
 
 
+# Signed file-access URLs carry a nonce and an HMAC that redact_id never sees, because neither is
+# UUID-shaped. They are authentication material and prove nothing about the defect, so they are
+# stripped by name. redact_body is a targeted scrubber, not a general one -- anything new that a
+# response can carry has to be considered explicitly.
+SIGNED_PARAM_RE = re.compile(r"\b(nonce|sign|signature|timestamp)=([^&\"\s]+)")
+
+
+def strip_signed_params(value: str) -> str:
+    return SIGNED_PARAM_RE.sub(lambda m: f"{m.group(1)}=<stripped>", value)
+
+
 def redact_body(obj: Any) -> Any:
     """Response body with every UUID-shaped value replaced. Structure and keys are untouched."""
     if isinstance(obj, dict):
@@ -78,7 +96,7 @@ def redact_body(obj: Any) -> Any:
     if isinstance(obj, list):
         return [redact_body(v) for v in obj]
     if isinstance(obj, str):
-        return UUID_RE.sub(lambda m: redact_id(m.group(0)), obj)
+        return strip_signed_params(UUID_RE.sub(lambda m: redact_id(m.group(0)), obj))
     return obj
 
 
@@ -323,7 +341,9 @@ def main() -> int:
         warnings=exp.get("warnings"),
         error=exp.get("error", ""),
         response_redacted=redact_body(exp),
-        dataset_ids=ids_exp,
+        # Redacted like the controls. This list is empty whenever the defect reproduces, which is
+        # the only reason the omission never leaked -- it would have, the moment it did not.
+        dataset_ids=[redact_id(i) for i in ids_exp],
         dropped=ids_exp == [],
         # Derived from what this run actually observed, not asserted in advance: the same
         # driver is used against patched builds, where the reported status differs.

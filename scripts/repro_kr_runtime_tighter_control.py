@@ -22,6 +22,11 @@ What this still does not claim: that an operator can *tell the two apart from th
 A dropped reference and a genuine zero-hit search still both yield SUCCEEDED + result: []. This
 script shows the control is capable of a non-empty result; it does not make the failure visible.
 
+!! Point --base at a throwaway Dify stack, never a real one. These drivers create datasets, apps
+   and workflow drafts in both tenants and leave them behind; the reproduction needs two tenants
+   on one instance, which a stock install has no route to create. Nothing here deletes or
+   overwrites, but nothing cleans up either.
+
 Usage:
     python3 repro_kr_runtime_tighter_control.py \
         --base http://127.0.0.1:18092 \
@@ -189,12 +194,27 @@ def main() -> int:
     record("document-indexed", indexing_status=redact_body(idx))
 
     # sanity: the dataset must now pass _get_available_datasets' having(count>0) filter
+    # retrieval_model must be supplied IN FULL. Omitting it defaults to semantic search, which
+    # 400s with "Default model not found for text-embedding" on a bed with no embedding model
+    # configured; supplying it partially 400s the same way. Both of those silently produced the
+    # zero-record result that an earlier version of this script narrated as a confirmation.
     status, hit = c.call(
         "POST",
         f"/console/api/datasets/{dataset_id}/hit-testing",
-        {"query": QUERY, "retrieval_model": {"search_method": "keyword_search", "top_k": 2}},
+        {
+            "query": QUERY,
+            "retrieval_model": {
+                "search_method": "keyword_search",
+                "reranking_enable": False,
+                "top_k": 2,
+                "score_threshold_enabled": False,
+            },
+        },
     )
-    record("hit-testing", http=status, records=len((hit or {}).get("records", [])) if isinstance(hit, dict) else None)
+    hits = len((hit or {}).get("records", [])) if isinstance(hit, dict) else None
+    record("hit-testing", http=status, records=hits, response=redact_body(hit))
+    if status != 200 or not hits:
+        raise SystemExit(f"hit-testing did not confirm the corpus is retrievable: HTTP {status}, {hits} records")
 
     # --- app in C, then cross-tenant import into D ---------------------------------------------
     src = source_dsl_runnable(dataset_id, f"tightctl-{now()}")

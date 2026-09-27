@@ -2,9 +2,9 @@
 .env
 *.env
 !*.env.example
-evidence/**/*.key
-evidence/**/*secret*
-evidence/**/*token*
+**/evidence/**/*.key
+**/evidence/**/*secret*
+**/evidence/**/*token*
 
 # Runtime state — the bed lives outside this repository on purpose, but guard anyway.
 volumes/

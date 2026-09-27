@@ -29,7 +29,11 @@ boundaries still hold.
 | holds, anchor moved | 29 |
 | holds, needs rewording | 8 |
 | changed | 4 |
-| **refuted** | **0** |
+| **overturned as a whole** | **0** |
+
+No fact fell entirely, but that is not the same as nothing being wrong: within the eight
+reworded and four changed rows, individual sub-claims were refuted outright — E1's "appears in no
+shipped env example" and E6's "POST-only" both went. The per-fact detail records which.
 
 Per-fact detail: [`anchor-map.md`](anchor-map.md).
 
@@ -43,8 +47,9 @@ Per-fact detail: [`anchor-map.md`](anchor-map.md).
 | `rag_pipeline_dsl_service.py:571-580` (RAG-pipeline drop) | `85cda47c70a`, 2025-09-18 | 12 months |
 | `app_dsl_service.py:1107-1129` (`decrypt_dataset_id`) | `2e9997110a1` 2025-04-03 / `598ec07c911` 2025-09-08 | 12–17 months |
 
-The `git diff 1.16.0..1.17.1` for both files shows the comprehension lines only as *context* —
-they are not on either side of a change hunk. Across 1501 commits nobody edited them.
+In `git diff 1.16.0..1.17.1` the comprehension lines appear only as *context* — never on either
+side of a change hunk. The behaviour has been stable across that span, which is what makes the
+reproduction portable between the two releases rather than a quirk of one.
 
 ## The reproductions, re-run on 1.17.1
 
@@ -83,7 +88,7 @@ removes it: the source tenant's dataset is given a real indexed document first.
 
 The control now returns a non-empty result through the full retrieval path, so it is demonstrably
 *not* running the experiment's short circuit. Evidence:
-[`evidence/kr-runtime-tighter-control-20260918T120921Z.json`](evidence/).
+[`evidence/kr-runtime-tighter-control-20260927T013449Z.json`](evidence/).
 
 What this still does **not** establish, and must not be claimed: that an operator can tell the two
 apart from the node result. A dropped reference and a genuine zero-hit search both yield
@@ -103,15 +108,15 @@ tool-credential encryption, not id transport. `grep -rn '"dataset_ids"\] =' --in
 **Two distinct silent-drop implementations, unchanged: `app_dsl_service.py:656-664` and
 `rag_pipeline_dsl_service.py:573-582`.** No third carrier discards a reference.
 
-But the sweep found **two propagation paths the ledger never recorded**. Neither adds a new drop
-implementation; both widen the blast radius of the two that exist:
+The sweep did find **two propagation paths the ledger had not recorded**. Neither adds a new drop
+implementation; both route through one of the two that exist, so both inherit its behaviour:
 
 1. **The migration-package mover** — `api/services/data_migration/export_service.py:137-139`,
    `import_service.py:326-347`, `api/commands/data_migration.py:406`. This is *upstream's own
    cross-tenant bulk mover*: exactly the tool an operator would reach for to do what this analysis
-   reproduces by hand. It delegates to the app-DSL carrier in both directions, and it adds a
-   **second layer of silence** — `import_service.py:345` accepts `COMPLETED_WITH_WARNINGS` as
-   success and never reads the `warnings` list. Even if the app-DSL branch were fixed to emit a
+   reproduces by hand. It delegates to the app-DSL carrier in both directions, and it does not
+   read the warning channel either — `import_service.py:345` treats `COMPLETED_WITH_WARNINGS` as
+   success without inspecting the `warnings` list. Even if the app-DSL branch were fixed to emit a
    `DslImportWarning`, this path would still throw it away. Its report model has no slot for it
    either: `ResourceType` (`data_migration/entities.py:30-35`) is WORKFLOW / API_TOOL /
    WORKFLOW_TOOL / MCP_TOOL / DEPENDENCY.

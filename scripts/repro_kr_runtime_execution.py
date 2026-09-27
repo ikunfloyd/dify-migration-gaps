@@ -14,6 +14,11 @@ then single-step-run the knowledge-retrieval node in both tenants via
 POST /console/api/apps/{app_id}/workflows/draft/nodes/{node_id}/run, and compare the
 WorkflowRunNodeExecutionResponse: status, error, outputs.
 
+!! Point --base at a throwaway Dify stack, never a real one. These drivers create datasets, apps
+   and workflow drafts in both tenants and leave them behind; the reproduction needs two tenants
+   on one instance, which a stock install has no route to create. Nothing here deletes or
+   overwrites, but nothing cleans up either.
+
 Usage:
     python3 repro_kr_runtime_execution.py \
         --base http://127.0.0.1:18091 \

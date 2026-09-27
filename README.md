@@ -26,7 +26,8 @@ does not.
 
 The analysis was first written against 1.16.0 and re-anchored to 1.17.1 — **1501 commits later** —
 on 2026-09-18: every fact relocated and re-graded, and every reproduction re-run on a fresh 1.17.1
-stack. 43 facts, **0 refuted**. `git blame` puts the two defect sites at 2026-04-09 and 2025-09-18
+stack. 43 facts: the core finding stood, and no fact was overturned as a whole, though several
+supporting sub-claims were corrected or withdrawn — E1 and E6 each lost half. `git blame` puts the two defect sites at 2026-04-09 and 2025-09-18
 respectively; neither was touched in between. The old→new anchor comparison lives in
 [`baselines/1.17.1/anchor-map.md`](baselines/1.17.1/anchor-map.md) so the ledger states one
 baseline rather than two.
@@ -36,12 +37,13 @@ baseline rather than two.
 | Path | What it is |
 |---|---|
 | `docs/upstream-facts.md` | Fact ledger — each claim graded *confirmed / corrected / live / inference / unverified*, with its anchor |
-| `docs/repro-log.md` | From-zero reproduction log, timestamped. **First line carries the kill date.** |
+| `docs/repro-log.md` | From-zero reproduction log, timestamped, append-only |
 | `docs/issue-draft.md` | Draft upstream issue. Not filed. Every sentence traces to a confirmed ledger row |
-| `evidence/` | Raw captured artifacts from the 1.16.0 runs (HTTP responses, exported DSL, container state) |
+| `evidence/` | Raw captured artifacts from the 1.16.0 runs (HTTP responses with ids pseudonymised, artifact hashes, container state). The exported DSL itself is not captured — it carries ciphertext keyed to a tenant id |
 | `baselines/1.17.1/` | The 1.17.1 re-verification: anchor map, its own evidence bundles, bed snapshot |
 | `fix/` | A tested patch for the app-DSL carrier, with before/after evidence. Not submitted |
-| `scripts/` | Scripts that drive the reproduction, so a reader can rerun it |
+| `scripts/` | Scripts that drive the reproduction, so a reader can rerun it. **Point them at a throwaway stack** |
+| `LICENSE` · `THIRD-PARTY-LICENSES.md` | MIT for this analysis; Dify's own licence for the source it quotes, with an inventory of what is quoted |
 
 ## The gap this starts with
 
@@ -63,7 +65,9 @@ apps with a `knowledge-retrieval` node, gated by `DSL_EXPORT_ENCRYPT_DATASET_ID`
 gated by that flag at all.
 
 The mechanism is not a bug in the encryption — the per-tenant key derivation is a deliberate
-isolation boundary, and this analysis does not propose weakening it. The gap is that the
+workspace-scoping decision, and this analysis does not propose weakening it. (It is a scoping
+mechanism, not the access check: authorisation is the tenant-filtered query at
+`dataset_retrieval.py:2083`, which holds regardless of what a DSL claims.) The gap is that the
 **failure to resolve the reference is not reported**, even though upstream already ships the exact
 channel for reporting it (`ImportStatus.COMPLETED_WITH_WARNINGS` / `DslImportWarning`) and already
 uses it for **six** other classes of unresolvable reference — including, on a sibling path, a
