@@ -18,8 +18,11 @@ Design notes that matter for the credibility of the output:
     empty one, because `.get("warnings", [])` cannot tell them apart.
   * A screenshot of an empty node cannot distinguish a dropped id from a
     surviving-but-unresolvable one, which is why nothing here relies on the UI.
-  * Tenant UUIDs and ciphertext are never written to the bundle together. The AES key is
-    sha256(tenant_id), so publishing both would let a reader recover the dataset UUID.
+  * The AES key is sha256(tenant_id), so a bundle carrying both a tenant UUID and the ciphertext
+    would let a reader recover the dataset UUID. No *complete* tenant UUID is written: `redact_id`
+    emits an 8-hex prefix plus a hash prefix, leaving on the order of 88 bits unknown, which is
+    what makes the recovery infeasible rather than merely inconvenient. It is not anonymisation --
+    see `redact_id` -- and the prefix does travel in the same file as the ciphertext.
 
 Usage:
     python3 repro_kr_dataset_drop.py \
