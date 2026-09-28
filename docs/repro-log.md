@@ -1,5 +1,8 @@
 # Reproduction log
 
+> **ARMED 2026-09-28.** Issue [#43062](https://github.com/langgenius/dify/issues/43062) opened.
+> Budget ends **2026-10-19**; my own check-in is **2026-10-12**, ahead of the stale bot.
+>
 > **My own time budget for this line of work — not a deadline on anyone else.** Nobody upstream
 > owes this a reply, and an unanswered issue is a normal outcome on a busy repository. The rule
 > exists so that *I* do not keep pouring effort into it out of sunk cost: *21 days after an issue is
@@ -472,3 +475,46 @@ and Apache 2.0 section 4(a) wants the licence travelling with them.
 ### Time budget
 
 Still not armed. No upstream issue has been opened.
+
+---
+
+## 2026-09-28 — Filed upstream
+
+[#43062](https://github.com/langgenius/dify/issues/43062), app-DSL carrier, on the `🕷️ Bug report`
+template. Title: *Workflow DSL import drops knowledge-retrieval dataset_ids across workspaces
+without reporting it*. Version field `1.17.1`, deployment `Self Hosted (Docker)`, no security
+label. Rendering checked in the form's preview before submitting: code fences, tables and inline
+code all came through, and the outer wrapper fences from the draft file were correctly left out.
+
+The framing changed materially in the last review before filing, and the reason is worth recording.
+Every earlier draft opened on `flask create-tenant`, two non-default flags and a non-TTY prompt —
+which reads as an exotic self-hosted configuration and invites "multi-tenant self-hosted isn't
+supported, just rebind after import". The actual trigger is moving a DSL between **two
+installations**: every install generates its own tenant ids, and the tenant id is the entire key.
+Staging to production, a colleague's export, a community template. That case had been sitting in
+the analysis the whole time without ever being stated, because the reproduction bed used two
+tenants on one instance and the writing followed the bed instead of the defect.
+
+Four checkable errors were fixed in the same pass. The worst: the blame date was off by seventeen
+months and pointed at `1117b6e72d`, which is a `match/case` refactor that reindented the
+comprehension rather than writing it — the logic came from #17353 on 2025-04-03. As filed, the
+issue says so explicitly, because a maintainer's first move on "git blame dates this to" is to run
+git blame.
+
+Also: neither draft named its import endpoint or said the persisted ids live in the draft rather
+than the import response; issue A told the reader to run the node while the linked driver
+configures `weighted_score` without `weights`, so following it would have produced
+`weights is required` and looked like the runtime claim was false; and "chat apps carry
+`dataset_ids` in `model_config`" is falsifiable with one grep — that field does not exist there.
+
+Observed within minutes of filing: a bot, `ghfind-review`, applied a `review: low` label, which is
+an author-reputation score ("ghfind author score"), not an assessment of the report. A new account
+with no public contribution history scores low by construction. Recorded because it is a real input
+to how the issue gets triaged, and it is a consequence of an account decision rather than of
+anything in the analysis.
+
+### Time budget
+
+**Armed.** Opened 2026-09-28, so the budget ends **2026-10-19** and my own check-in is
+**2026-10-12** — deliberately ahead of the stale bot, which closes at 15 days idle plus a 3-day
+grace. Issue B stays unfiled until #43062 gets a response.

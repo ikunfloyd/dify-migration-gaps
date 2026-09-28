@@ -85,7 +85,11 @@ first — the ledger is authoritative, the prose is not.
 
 ## Status
 
-Re-verified against the current release. No upstream issue has been opened yet, and no patch has
-been submitted. No upstream issue reporting this was found (searched 2026-09-18).
+[**#43062**](https://github.com/langgenius/dify/issues/43062) was filed upstream on 2026-09-28 for
+the app-DSL carrier, carrying the patch offer. The RAG-pipeline issue is written
+([`docs/issue-b-rag-pipeline.md`](docs/issue-b-rag-pipeline.md)) but held until that one gets a
+response — the two need different-sized fixes, and filing both at once puts the small decision
+behind the large one. No patch has been submitted.
+
 This repository is the deliverable in its own right; an upstream contribution, if it happens at
 all, is a downstream option and is not assumed.

@@ -9,7 +9,7 @@ order of weight:
    a much shorter argument than making the case twice.
 3. If A gets no response inside the kill-date window, B should not be filed at all.
 
-Fill Dify's `🕷️ Bug report` template with the fields below. Replace every `#NNN` with Issue A's
+Fill Dify's `🕷️ Bug report` template with the fields below. Replace every `#43062` with Issue A's
 real number.
 
 **When pasting: copy only what is *inside* the outer ```` ```markdown ```` fences.**
@@ -37,9 +37,9 @@ Self Hosted (Docker)
 ## Steps to reproduce
 
 ````markdown
-Same shape as #NNN, on the RAG-pipeline importer — a separate implementation of the same
+Same shape as #43062, on the RAG-pipeline importer — a separate implementation of the same
 transport. As there, the ordinary trigger is moving a DSL between two installations; two workspaces
-on one instance is just the cheaper way to reproduce it (see #NNN for how that bed was made).
+on one instance is just the cheaper way to reproduce it (see #43062 for how that bed was made).
 
 1. In workspace C, create a dataset, then import a pipeline whose DSL contains a
    `knowledge-index` node — `POST /console/api/rag/pipelines/imports` with
@@ -59,7 +59,7 @@ on one instance is just the cheaper way to reproduce it (see #NNN for how that b
 5. Import the same DSL into workspace D — `dataset_ids` comes back `[]`, and the response reports
    `status: "completed"` with no `warnings` field to inspect.
 
-**Why it happens.** Structurally identical to #NNN: a walrus comprehension drops whatever fails to
+**Why it happens.** Structurally identical to #43062: a walrus comprehension drops whatever fails to
 decrypt, with no `else`, nothing appended, no log —
 `api/services/rag_pipeline/rag_pipeline_dsl_service.py:570-582` at 1.17.1, inside
 `_create_or_update_pipeline` (`:537`):
@@ -107,18 +107,18 @@ on 1.16.0.
 ## ✔️ Expected Behavior
 
 ````markdown
-Same ask as #NNN: when a non-empty input element is discarded, report it. The observable is that
+Same ask as #43062: when a non-empty input element is discarded, report it. The observable is that
 an import which drops a knowledge reference should say so in its response rather than reporting
-plain success. The difference from #NNN is that this path cannot express that today.
+plain success. The difference from #43062 is that this path cannot express that today.
 
-How, is your call. The shape matching #NNN would be a `warnings` list on
+How, is your call. The shape matching #43062 would be a `warnings` list on
 `RagPipelineImportResponse` and on the service's `RagPipelineImportInfo`, a `_warnings` collector
 and a `_status_with_warnings` mirroring `app_dsl_service.py:879-882`, and an append on the discard
 branch — a suggestion, not the only option. Its first step changes the API surface, which is why
-this is separate from #NNN: there the channel already exists and one branch simply does not use
+this is separate from #43062: there the channel already exists and one branch simply does not use
 it.
 
-What this is **not** asking for, same as #NNN: no change to the per-tenant key derivation, no
+What this is **not** asking for, same as #43062: no change to the per-tenant key derivation, no
 failing the import, no restoring or existence-checking the reference.
 
 Worth deciding separately, and I have no strong view: whether `decrypt_dataset_id` here should gain
@@ -131,10 +131,10 @@ the ask above.
 ## ❌ Actual Behavior
 
 ````markdown
-The reference is gone from the persisted graph, and unlike #NNN there is not even an empty
+The reference is gone from the persisted graph, and unlike #43062 there is not even an empty
 `warnings` array to notice.
 
-| | app-DSL (#NNN) | RAG-pipeline (this issue) |
+| | app-DSL (#43062) | RAG-pipeline (this issue) |
 |---|---|---|
 | Import response | `completed`, `warnings: []` | `completed`, **no `warnings` field** |
 | Export encryption | gated by `DSL_EXPORT_ENCRYPT_DATASET_ID` | unconditional |
@@ -158,8 +158,8 @@ None covers the import-side silence.
 
 ## Notes for posting (not part of the issue)
 
-- Replace every `#NNN` with the real number, and add a line to A pointing here once B exists.
-  (An earlier draft used `#NNN`; markdown swallows that as an HTML tag and it renders as
+- Replace every `#43062` with the real number, and add a line to A pointing here once B exists.
+  (An earlier draft used `#43062`; markdown swallows that as an HTML tag and it renders as
   nothing at all.)
 - `api/services/rag_pipeline/` matches `/api/services/rag_pipeline/ @JohnJyong` in CODEOWNERS
   (`:60`). That governs automatic review requests on a **PR**, not issue assignment — it predicts
