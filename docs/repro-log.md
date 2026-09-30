@@ -522,10 +522,9 @@ grace. Issue B stays unfiled until #43062 gets a response.
 ## 2026-09-29 — the PR is prepared; a competing PR appeared first
 
 Seven hours after #43062 was filed, [#43083](https://github.com/langgenius/dify/pull/43083) was
-opened against it by an account that batch-generates PRs across many repositories. Its service diff
-is near-verbatim from `fix/0001-*.patch` — same variable name, same empty-string guard that the
-issue body never showed. Recorded, not contested: two PRs on one issue is normal, and the body of
-this one states the differences without speculating about their origin.
+opened against it. Its service diff is close to `fix/0001-*.patch` — same variable name, same
+empty-string guard. Recorded, not contested: two PRs on one issue is normal, and the body of this
+one states the technical differences and nothing else.
 
 The branch `kr-dataset-drop-warning` was rebased onto `origin/main` @ `6decc78fd5`; the block the
 patch replaces is byte-identical to 1.17.1, so it applies without conflict. A second pass over the
@@ -537,8 +536,8 @@ patch turned up two things worth fixing before pushing:
 - No test pinned the case that must *not* warn: an id encrypted under the importing workspace's own
   tenant. Added as the second test. A third pass added the other must-not-warn case, a plain
   dataset id as exported with encryption off, which the PR summary asserts and nothing had pinned.
-  Seven tests, +154 lines — by coincidence the count the unformatted five-test version had; the
-  helper refactor gave back what the two new tests cost.
+  Seven tests, +162 lines once the multi-node test also asserts that the two messages differ —
+  the property the title-in-message decision exists for.
 
 Verification on the amended commit, all on real builds: the seven tests pass against 1.17.1
 (`docker cp` into `difybed1171-api-1`, bed restored to pristine afterwards; with the loop reverted

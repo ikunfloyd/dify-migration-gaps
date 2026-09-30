@@ -11,7 +11,7 @@ this waits on the issue.
 |---|---|
 | Patch | [`0001-report-dropped-knowledge-references.patch`](0001-report-dropped-knowledge-references.patch) |
 | Applies to | `langgenius/dify` `origin/main` @ `6decc78fd5` (2026-09-30) — the branch is rebased onto it, so the patch applies cleanly |
-| Size | `api/services/app_dsl_service.py` **+23 −9**; `api/tests/.../test_app_dsl_service.py` **+154** (one helper, seven tests) |
+| Size | `api/services/app_dsl_service.py` **+23 −9**; `api/tests/.../test_app_dsl_service.py` **+162** (one helper, seven tests) |
 | Scope | the app-DSL carrier only. The RAG-pipeline carrier (S4) needs a response-schema change first and is deliberately not touched here |
 
 ## What it does

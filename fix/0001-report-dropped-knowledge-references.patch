@@ -1,4 +1,4 @@
-From 02925d99dc36f95f8769aed8b44c62c5619cef99 Mon Sep 17 00:00:00 2001
+From 9cf1fe497f7e4c79b030aa3c4dad137806dac9d8 Mon Sep 17 00:00:00 2001
 From: ikunfloyd <146411514+ikunfloyd@users.noreply.github.com>
 Date: Fri, 25 Sep 2026 21:26:49 -0700
 Subject: [PATCH] fix(api): report knowledge-retrieval dataset ids dropped on
@@ -8,9 +8,10 @@ Importing a workflow or advanced-chat DSL under a different workspace silently e
 knowledge-retrieval node's dataset_ids. The ids are exported AES-encrypted under a key derived
 from the source tenant id and decrypted under the target tenant's, so decrypt_dataset_id returns
 None and the walrus comprehension drops the element with no else branch, nothing appended to the
-warnings list, and no log line. The import then returns status "completed" with warnings: [].
+warnings list, and no log line. The import returns status "completed" and nothing in its warnings
+mentions the loss.
 
-Nothing downstream surfaces the loss either: at runtime an empty dataset_ids short-circuits in
+The runtime does not surface it either: an empty dataset_ids short-circuits in
 DatasetRetrieval.knowledge_retrieval and the node returns SUCCEEDED with result: [], which is
 indistinguishable from a query that legitimately matched nothing.
 
@@ -29,12 +30,12 @@ rebind. Empty strings are skipped, since an empty string was never a reference t
 
 Warnings carry the node title rather than only the array index, because the index is not visible
 on the canvas and the web client de-duplicates warnings by message text. The undecryptable value
-itself is deliberately not echoed: both the AES key and the IV derive from the tenant id, so
-returning it would add exposure without helping reselection.
+itself is not echoed: it is the ciphertext the caller just uploaded, and it cannot help with
+reselection.
 ---
  api/services/app_dsl_service.py               |  32 +++-
- .../services/test_app_dsl_service.py          | 154 ++++++++++++++++++
- 2 files changed, 177 insertions(+), 9 deletions(-)
+ .../services/test_app_dsl_service.py          | 162 ++++++++++++++++++
+ 2 files changed, 185 insertions(+), 9 deletions(-)
 
 diff --git a/api/services/app_dsl_service.py b/api/services/app_dsl_service.py
 index 6ef368bc20..fc7082286e 100644
@@ -83,10 +84,10 @@ index 6ef368bc20..fc7082286e 100644
                  if not isinstance(raw_agent_packages, Mapping):
                      raise ValueError("agent_packages must be a mapping")
 diff --git a/api/tests/unit_tests/services/test_app_dsl_service.py b/api/tests/unit_tests/services/test_app_dsl_service.py
-index 8280c4b41b..4d64f2d593 100644
+index 8280c4b41b..dedfad824f 100644
 --- a/api/tests/unit_tests/services/test_app_dsl_service.py
 +++ b/api/tests/unit_tests/services/test_app_dsl_service.py
-@@ -783,6 +783,160 @@ def test_create_or_update_app_removes_imported_workflow_viewport(monkeypatch: py
+@@ -783,6 +783,168 @@ def test_create_or_update_app_removes_imported_workflow_viewport(monkeypatch: py
      assert imported_graph["viewport"] == {"x": 100, "y": 200, "zoom": 1.5}
  
  
@@ -221,7 +222,11 @@ index 8280c4b41b..4d64f2d593 100644
 +
 +
 +def test_create_or_update_app_reports_each_knowledge_node_separately(monkeypatch: pytest.MonkeyPatch) -> None:
-+    """Two knowledge nodes must not be conflated: each warning names its own node and index."""
++    """Two knowledge nodes must not be conflated: each warning names its own node, in its message too.
++
++    The message matters because the web client de-duplicates import warnings by message text; two
++    nodes reported with the same message would show as one.
++    """
 +    service, _ = _knowledge_import(
 +        monkeypatch,
 +        nodes=[
@@ -235,6 +240,10 @@ index 8280c4b41b..4d64f2d593 100644
 +        ("workflow.graph.nodes.0.data.dataset_ids.0", "kr-a", "Policies"),
 +        ("workflow.graph.nodes.2.data.dataset_ids.0", "kr-b", "Manuals"),
 +    ]
++    messages = [w.message for w in service._warnings]
++    assert len(set(messages)) == 2
++    assert "'Policies'" in messages[0]
++    assert "'Manuals'" in messages[1]
 +
 +
 +def test_unresolved_knowledge_reference_promotes_the_import_status(monkeypatch: pytest.MonkeyPatch) -> None:
