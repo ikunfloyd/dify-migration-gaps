@@ -1,41 +1,49 @@
-From 9cf1fe497f7e4c79b030aa3c4dad137806dac9d8 Mon Sep 17 00:00:00 2001
+From 8fe8ee98f14f9c284f5fa3c03ba94cd932988053 Mon Sep 17 00:00:00 2001
 From: ikunfloyd <146411514+ikunfloyd@users.noreply.github.com>
 Date: Fri, 25 Sep 2026 21:26:49 -0700
 Subject: [PATCH] fix(api): report knowledge-retrieval dataset ids dropped on
  cross-workspace DSL import
 
-Importing a workflow or advanced-chat DSL under a different workspace silently empties a
-knowledge-retrieval node's dataset_ids. The ids are exported AES-encrypted under a key derived
-from the source tenant id and decrypted under the target tenant's, so decrypt_dataset_id returns
-None and the walrus comprehension drops the element with no else branch, nothing appended to the
-warnings list, and no log line. The import returns status "completed" and nothing in its warnings
-mentions the loss.
+Importing a workflow or advanced-chat DSL under a different workspace
+silently empties a knowledge-retrieval node's dataset_ids. The ids are
+exported AES-encrypted under a key derived from the source tenant id and
+decrypted under the target tenant's, so decrypt_dataset_id returns None
+and the walrus comprehension drops the element with no else branch,
+nothing appended to the warnings list, and no log line. The import
+returns status "completed" and nothing in its warnings mentions the
+loss.
 
-The runtime does not surface it either: an empty dataset_ids short-circuits in
-DatasetRetrieval.knowledge_retrieval and the node returns SUCCEEDED with result: [], which is
-indistinguishable from a query that legitimately matched nothing.
+The runtime does not surface it either: an empty dataset_ids short-
+circuits in DatasetRetrieval.knowledge_retrieval and the node returns
+SUCCEEDED with result: [], which is indistinguishable from a query that
+legitimately matched nothing.
 
-Report it through the mechanism this file already carries. DslImportWarning is constructed in
-services/agent/dsl_service.py for the other kinds of reference that cannot be restored in the
-target workspace, and this same match-case branch already extends self._warnings with those a
-few lines below; the knowledge-retrieval branch was the one that collected nothing.
+Report it through the mechanism this file already carries.
+DslImportWarning is constructed in services/agent/dsl_service.py for the
+other kinds of reference that cannot be restored in the target
+workspace, and this same match-case branch already extends
+self._warnings with those a few lines below; the knowledge-retrieval
+branch was the one that collected nothing.
 
-Externally visible change: a cross-workspace import that loses a reference now returns
-COMPLETED_WITH_WARNINGS instead of COMPLETED. Every in-tree consumer of the import result
-already accepts that status, and an import that loses nothing is unaffected.
+Externally visible change: a cross-workspace import that loses a
+reference now returns COMPLETED_WITH_WARNINGS instead of COMPLETED.
+Every in-tree consumer of the import result already accepts that status,
+and an import that loses nothing is unaffected.
 
-The encryption is untouched. The import still succeeds and the reference is neither restored nor
-existence-checked - only the silent omission is reported, so the operator knows which node to
-rebind. Empty strings are skipped, since an empty string was never a reference to lose.
+The encryption is untouched. The import still succeeds and the reference
+is neither restored nor existence-checked - only the silent omission is
+reported, so the operator knows which node to rebind. Empty strings are
+skipped, since an empty string was never a reference to lose.
 
-Warnings carry the node title rather than only the array index, because the index is not visible
-on the canvas and the web client de-duplicates warnings by message text. The undecryptable value
-itself is not echoed: it is the ciphertext the caller just uploaded, and it cannot help with
+Warnings carry the node title rather than only the array index, because
+the index is not visible on the canvas and the web client de-duplicates
+warnings by message text. The undecryptable value itself is not echoed:
+it is the ciphertext the caller just uploaded, and it cannot help with
 reselection.
 ---
  api/services/app_dsl_service.py               |  32 +++-
- .../services/test_app_dsl_service.py          | 162 ++++++++++++++++++
- 2 files changed, 185 insertions(+), 9 deletions(-)
+ .../services/test_app_dsl_service.py          | 179 ++++++++++++++++++
+ 2 files changed, 202 insertions(+), 9 deletions(-)
 
 diff --git a/api/services/app_dsl_service.py b/api/services/app_dsl_service.py
 index 6ef368bc20..fc7082286e 100644
@@ -84,10 +92,10 @@ index 6ef368bc20..fc7082286e 100644
                  if not isinstance(raw_agent_packages, Mapping):
                      raise ValueError("agent_packages must be a mapping")
 diff --git a/api/tests/unit_tests/services/test_app_dsl_service.py b/api/tests/unit_tests/services/test_app_dsl_service.py
-index 8280c4b41b..dedfad824f 100644
+index 8280c4b41b..ffb788f2b4 100644
 --- a/api/tests/unit_tests/services/test_app_dsl_service.py
 +++ b/api/tests/unit_tests/services/test_app_dsl_service.py
-@@ -783,6 +783,168 @@ def test_create_or_update_app_removes_imported_workflow_viewport(monkeypatch: py
+@@ -783,6 +783,185 @@ def test_create_or_update_app_removes_imported_workflow_viewport(monkeypatch: py
      assert imported_graph["viewport"] == {"x": 100, "y": 200, "zoom": 1.5}
  
  
@@ -148,7 +156,7 @@ index 8280c4b41b..dedfad824f 100644
 +def test_create_or_update_app_warns_when_knowledge_reference_cannot_be_restored(
 +    monkeypatch: pytest.MonkeyPatch,
 +) -> None:
-+    monkeypatch.setattr("services.app_dsl_service.dify_config.DSL_EXPORT_ENCRYPT_DATASET_ID", True)
++    apply_config_overrides(monkeypatch, DSL_EXPORT_ENCRYPT_DATASET_ID=True)
 +    readable = "55555555-5555-4555-8555-555555555555"
 +    # Encrypted under a different tenant: the AES key is derived from the tenant id alone, so the
 +    # importing tenant cannot decode it. This is what a cross-workspace export looks like.
@@ -176,7 +184,7 @@ index 8280c4b41b..dedfad824f 100644
 +    monkeypatch: pytest.MonkeyPatch,
 +) -> None:
 +    """An id encrypted under the importing workspace's own tenant decodes and is not reported."""
-+    monkeypatch.setattr("services.app_dsl_service.dify_config.DSL_EXPORT_ENCRYPT_DATASET_ID", True)
++    apply_config_overrides(monkeypatch, DSL_EXPORT_ENCRYPT_DATASET_ID=True)
 +    dataset_uuid = "55555555-5555-4555-8555-555555555555"
 +    own = AppDslService.encrypt_dataset_id(dataset_id=dataset_uuid, tenant_id=_TENANT_ID)
 +    assert own != dataset_uuid
@@ -244,6 +252,23 @@ index 8280c4b41b..dedfad824f 100644
 +    assert len(set(messages)) == 2
 +    assert "'Policies'" in messages[0]
 +    assert "'Manuals'" in messages[1]
++
++
++def test_create_or_update_app_reports_untitled_knowledge_node_under_default_label(
++    monkeypatch: pytest.MonkeyPatch,
++) -> None:
++    """A node whose DSL carries no title is reported under the node type's default label."""
++    service, sync_draft_workflow = _knowledge_import(
++        monkeypatch,
++        nodes=[{"id": "kr", "data": {"type": "knowledge-retrieval", "dataset_ids": ["not-base64"]}}],
++    )
++
++    assert sync_draft_workflow.call_args.kwargs["graph"]["nodes"][0]["data"]["dataset_ids"] == []
++    [warning] = service._warnings
++    assert warning.message == (
++        "Knowledge base in node 'Knowledge Retrieval' is unavailable in the target workspace and must be reselected."
++    )
++    assert warning.details == {"node_id": "kr", "node_title": "Knowledge Retrieval"}
 +
 +
 +def test_unresolved_knowledge_reference_promotes_the_import_status(monkeypatch: pytest.MonkeyPatch) -> None:

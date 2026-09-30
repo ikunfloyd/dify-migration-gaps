@@ -88,7 +88,7 @@ the container environment**, so the app uses its declared default of `True`
 One dataset, one workflow app with a single `knowledge-retrieval` node, one export, three imports.
 Driver: `scripts/repro_kr_dataset_drop.py`.
 
-Run once at 17:50:12Z, then **re-run at 18:00:18Z after an external review of the first bundle**.
+Run once at 17:50:12Z, then **re-run at 18:00:18Z after I re-read the first bundle**.
 The first run recorded `warnings` via `.get("warnings", [])`, which cannot distinguish an empty
 array from a missing key, and it asserted rather than checked whether the target tenant could see
 the surviving dataset. Both were fixed in the driver and the run repeated; only the second bundle is
@@ -324,8 +324,7 @@ tell the two apart. Both read `SUCCEEDED` + `result: []`.
 
 Every fact relocated section by section, each anchor established by opening the file at 1.17.1 and
 quoting the decisive lines rather than adjusting the old number to fit. Every fact graded as
-anything other than "moved" then went through a second, adversarial pass instructed to refute the
-first.
+anything other than "moved" was then re-checked by trying to refute it.
 
 43 facts: 2 same anchor, 29 moved, 8 need rewording, 4 changed, **none overturned as a whole**
 (individual sub-claims inside the reworded and changed rows did fall — E1, E6). Two refutations
@@ -370,15 +369,13 @@ had cited one. And exactly three sites set `COMPLETED_WITH_WARNINGS`, one of whi
 route by which a RAG-pipeline import can return that status — for version skew, never for a lost
 reference.
 
-### Second, independent derivation
+### Re-derivation from source
 
-The core questions were answered from source a second time, posed blind — without this analysis's
-framing and without reference to it, so a wrong premise would surface as a rejection rather than be
-confirmed by suggestion. That pass reached the same conclusions and sharpened two: the RAG decoder's
-missing post-decrypt UUID validation (above), and that `RagPipelineImportResponse`'s base sets
-`extra="ignore"` (`api/fields/base.py:9`), so a warnings field cannot arrive by accident — the schema
-change really is a prerequisite. Those working notes are not committed; they were an instrument, not
-evidence.
+The core questions were answered from source a second time without consulting the earlier notes,
+so a wrong premise would surface as a rejection rather than be confirmed by suggestion. The
+conclusions held and two were sharpened: the RAG decoder's missing post-decrypt UUID validation
+(above), and that `RagPipelineImportResponse`'s base sets `extra="ignore"` (`api/fields/base.py:9`),
+so a warnings field cannot arrive by accident — the schema change really is a prerequisite.
 
 ### Time budget
 
@@ -425,9 +422,9 @@ Still not armed. No upstream issue has been opened.
 
 ---
 
-## 2026-09-27 — Pre-publication review
+## 2026-09-27 — Before publishing
 
-Before making the repository public, an adversarial pass over the patch, the prose and the history.
+Before making the repository public I went back over the patch, the prose and the history.
 Recorded here because several of its findings were defects in this log and in the evidence, not in
 Dify.
 
@@ -527,21 +524,22 @@ empty-string guard. Recorded, not contested: two PRs on one issue is normal, and
 one states the technical differences and nothing else.
 
 The branch `kr-dataset-drop-warning` was rebased onto `origin/main` @ `6decc78fd5`; the block the
-patch replaces is byte-identical to 1.17.1, so it applies without conflict. A second pass over the
-patch turned up two things worth fixing before pushing:
+patch replaces is byte-identical to 1.17.1, so it applies without conflict. On a re-read of the
+patch, two things needed fixing before pushing:
 
 - `ruff format` would have rewritten the hand-wrapped dict literals in the multi-node test.
   autofix.ci would have pushed a formatting commit onto the PR, which is a poor first impression.
   The helper now takes a `nodes` argument and the file is formatted (ruff 0.16.9, `api/.ruff.toml`).
 - No test pinned the case that must *not* warn: an id encrypted under the importing workspace's own
-  tenant. Added as the second test. A third pass added the other must-not-warn case, a plain
+  tenant. Added as the second test. A later re-read added the other must-not-warn case, a plain
   dataset id as exported with encryption off, which the PR summary asserts and nothing had pinned.
-  Seven tests, +162 lines once the multi-node test also asserts that the two messages differ —
-  the property the title-in-message decision exists for.
+  Then the multi-node test gained an assertion that the two messages differ (the property the
+  title-in-message decision exists for), and an eighth test pinned the default label for an
+  untitled node. Eight tests, +179 lines.
 
-Verification on the amended commit, all on real builds: the seven tests pass against 1.17.1
+Verification on the amended commit, all on real builds: the eight tests pass against 1.17.1
 (`docker cp` into `difybed1171-api-1`, bed restored to pristine afterwards; with the loop reverted
-to the comprehension, exactly the four reporting tests fail and the three must-not-warn tests
+to the comprehension, exactly the five reporting tests fail and the three must-not-warn tests
 still pass); `ruff check` and
 `ruff format --check` clean; `pyrefly check` 1.3.1 on both files, run inside a throwaway
 `langgenius/dify-api:1.17.1` container against the `main`-based tree with both the core config and

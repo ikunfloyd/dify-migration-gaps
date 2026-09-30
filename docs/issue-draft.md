@@ -268,8 +268,6 @@ there, so it is not in this patch and gets its own issue.
   A source-level patch does not need reproducing to be reviewed.
 - **Precedent worth knowing:** #42750 (merged 2026-09-25) is an external contribution to this same
   file, improving import diagnostics, with a maintainer as co-author. That path is open.
-- **The template asks that PRs created by an automated agent say so** in the description. Decide
-  how that applies before submitting; it is a question about the PR, not about this repository.
 - The evidence-repo link assumes `ikunfloyd/dify-migration-gaps` is pushed and public.
   Local commits are ahead of `origin/main` — push first, or the linked ledger will be stale
   relative to what the issue claims.

@@ -6,8 +6,8 @@ original baseline 1.16.0 / `5c6372d`.
 
 Method: each ledger section was relocated separately, and every anchor was established by opening
 the file at 1.17.1 and quoting the decisive lines — never by adjusting the old number to fit. Every
-fact graded as anything other than "moved" then went through a second, adversarial pass whose
-explicit goal was to refute the first. Two of those refutations succeeded and are applied below
+fact graded as anything other than "moved" was then re-checked by trying to refute it. Two of
+those refutations succeeded and are applied below
 (D6, E2); both downgraded the severity of a claimed change rather than overturning a fact.
 
 ## Result

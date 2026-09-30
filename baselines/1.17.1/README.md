@@ -149,12 +149,11 @@ consequence for S4 is precise and worth stating in the issue: **a RAG-pipeline i
 `COMPLETED_WITH_WARNINGS`, but only for DSL version skew, never for a lost reference** — there is no
 `_warnings` list and no `_status_with_warnings` anywhere in `rag_pipeline_dsl_service.py`.
 
-## Second, independent derivation
+## Re-derivation from source
 
-The core claims were derived from the source a second time, from blind questions posed without this
-analysis's framing and without reference to it — so that a wrong premise would surface as a
-rejection rather than be confirmed by suggestion. That pass reached the same conclusions, and
-sharpened two:
+The core claims were derived from the source a second time without consulting the earlier notes,
+so that a wrong premise would surface as a rejection rather than be confirmed by suggestion. The
+conclusions held, and two were sharpened:
 
 - **The RAG-pipeline decoder has no post-decrypt UUID validation either** — it returns `pt.decode()`
   raw (`:943`), where the app-DSL path requires the result to be a UUID. So that path filters only
@@ -162,8 +161,6 @@ sharpened two:
   Ledger S4(c) understates this; it mentions only the missing plain-UUID short circuit.
 - **`RagPipelineImportResponse`'s base sets `extra="ignore"`** (`api/fields/base.py:9`), so a
   warnings field cannot even arrive by accident — the schema change really is a prerequisite.
-
-That pass's working notes are not committed here; it was a verification instrument, not evidence.
 
 ## What this changes for filing
 

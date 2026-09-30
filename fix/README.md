@@ -11,7 +11,7 @@ this waits on the issue.
 |---|---|
 | Patch | [`0001-report-dropped-knowledge-references.patch`](0001-report-dropped-knowledge-references.patch) |
 | Applies to | `langgenius/dify` `origin/main` @ `6decc78fd5` (2026-09-30) — the branch is rebased onto it, so the patch applies cleanly |
-| Size | `api/services/app_dsl_service.py` **+23 −9**; `api/tests/.../test_app_dsl_service.py` **+162** (one helper, seven tests) |
+| Size | `api/services/app_dsl_service.py` **+23 −9**; `api/tests/.../test_app_dsl_service.py` **+179** (one helper, eight tests) |
 | Scope | the app-DSL carrier only. The RAG-pipeline carrier (S4) needs a response-schema change first and is deliberately not touched here |
 
 ## What it does
@@ -72,7 +72,7 @@ operator can find on a canvas.
 
 ## Verification
 
-**Unit tests** — seven, in `api/tests/unit_tests/services/test_app_dsl_service.py`, next to
+**Unit tests** — eight, in `api/tests/unit_tests/services/test_app_dsl_service.py`, next to
 `test_create_or_update_app_removes_imported_workflow_viewport` (which covers the viewport handling
 immediately above the patched loop, so the fixture shape was already established there). Run
 against a real 1.17.1 build, all passing:
@@ -84,11 +84,13 @@ against a real 1.17.1 build, all passing:
 | `..._keeps_plaintext_knowledge_reference` | a plain dataset id, as exported with encryption off, passes through, and nothing is reported |
 | `..._reports_one_warning_per_unresolved_knowledge_reference` | per-element granularity and index |
 | `..._does_not_warn_about_empty_knowledge_references` | an empty string is not reported as a loss |
-| `..._reports_each_knowledge_node_separately` | two knowledge nodes are not conflated; each warning carries its own node index and id |
+| `..._reports_each_knowledge_node_separately` | two knowledge nodes are not conflated; each warning carries its own node index and id, and the two messages differ |
+| `..._reports_untitled_knowledge_node_under_default_label` | a node with no title is reported under `Knowledge Retrieval`, the node type's default label |
 | `..._promotes_the_import_status` | the response status stops saying plain `completed` |
 
-Of these, the first, second, fourth and fifth fail if the loop is reverted to the original
-comprehension. The third passes either way by design — it pins behaviour that must *not* change.
+Five of these fail if the loop is reverted to the original comprehension. The own-workspace,
+plaintext and empty-string tests pass either way by design — they pin behaviour that must *not*
+change.
 
 **End-to-end** — `scripts/repro_kr_dataset_drop.py`, unmodified in substance, against the same bed
 used for the 1.17.1 baseline, patched and unpatched. The driver's own verdict flips and nothing
