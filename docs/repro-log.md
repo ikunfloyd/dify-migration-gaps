@@ -518,3 +518,31 @@ anything in the analysis.
 **Armed.** Opened 2026-09-28, so the budget ends **2026-10-19** and my own check-in is
 **2026-10-12** — deliberately ahead of the stale bot, which closes at 15 days idle plus a 3-day
 grace. Issue B stays unfiled until #43062 gets a response.
+
+## 2026-09-29 — the PR is prepared; a competing PR appeared first
+
+Seven hours after #43062 was filed, [#43083](https://github.com/langgenius/dify/pull/43083) was
+opened against it by an account that batch-generates PRs across many repositories. Its service diff
+is near-verbatim from `fix/0001-*.patch` — same variable name, same empty-string guard that the
+issue body never showed. Recorded, not contested: two PRs on one issue is normal, and the body of
+this one states the differences without speculating about their origin.
+
+The branch `kr-dataset-drop-warning` was rebased onto `origin/main` @ `e48680f32b`; the block the
+patch replaces is byte-identical to 1.17.1, so it applies without conflict. A second pass over the
+patch turned up two things worth fixing before pushing:
+
+- `ruff format` would have rewritten the hand-wrapped dict literals in the multi-node test.
+  autofix.ci would have pushed a formatting commit onto the PR, which is a poor first impression.
+  The helper now takes a `nodes` argument and the file is formatted (ruff 0.16.9, `api/.ruff.toml`).
+- No test pinned the case that must *not* warn: an id encrypted under the importing workspace's own
+  tenant. Added as the second test, bringing the count to six (+144 lines, was +154 with five).
+
+Verification on the amended commit, all on real builds: the six tests pass against 1.17.1
+(`docker cp` into `difybed1171-api-1`, bed restored to pristine afterwards); `ruff check` and
+`ruff format --check` clean; `pyrefly check` 1.3.1 on both files, run inside a throwaway
+`langgenius/dify-api:1.17.1` container against the `main`-based tree with both the core config and
+`tests/unit_tests/pyrefly.toml`, reports nothing beyond the `yaml` untyped-import warning that
+pristine `main` also has. import-linter was not run (needs `uv sync`).
+
+The PR title and body live in `docs/pr-a-app-dsl.md`; `fix/0001-*.patch` is regenerated from the
+amended commit. Not pushed yet.

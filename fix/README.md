@@ -10,8 +10,8 @@ this waits on the issue.
 | | |
 |---|---|
 | Patch | [`0001-report-dropped-knowledge-references.patch`](0001-report-dropped-knowledge-references.patch) |
-| Applies to | `langgenius/dify` `origin/main` @ `f4602cc1fe` (2026-09-25) — verified with `git apply --check` on a pristine worktree |
-| Size | `api/services/app_dsl_service.py` **+23 −9**; `api/tests/.../test_app_dsl_service.py` **+154** (one helper, five tests) |
+| Applies to | `langgenius/dify` `origin/main` @ `e48680f32b` (2026-09-29) — the branch is rebased onto it, so the patch applies cleanly |
+| Size | `api/services/app_dsl_service.py` **+23 −9**; `api/tests/.../test_app_dsl_service.py` **+144** (one helper, six tests) |
 | Scope | the app-DSL carrier only. The RAG-pipeline carrier (S4) needs a response-schema change first and is deliberately not touched here |
 
 ## What it does
@@ -72,7 +72,7 @@ operator can find on a canvas.
 
 ## Verification
 
-**Unit tests** — five, in `api/tests/unit_tests/services/test_app_dsl_service.py`, next to
+**Unit tests** — six, in `api/tests/unit_tests/services/test_app_dsl_service.py`, next to
 `test_create_or_update_app_removes_imported_workflow_viewport` (which covers the viewport handling
 immediately above the patched loop, so the fixture shape was already established there). Run
 against a real 1.17.1 build, all passing:
@@ -80,6 +80,7 @@ against a real 1.17.1 build, all passing:
 | test | pins |
 |---|---|
 | `..._warns_when_knowledge_reference_cannot_be_restored` | a cross-tenant reference is dropped *and* reported, with exact code/path/message/details |
+| `..._keeps_knowledge_reference_encrypted_for_this_workspace` | an id encrypted under the importing workspace's own tenant still decodes, and nothing is reported |
 | `..._reports_one_warning_per_unresolved_knowledge_reference` | per-element granularity and index |
 | `..._does_not_warn_about_empty_knowledge_references` | an empty string is not reported as a loss |
 | `..._reports_each_knowledge_node_separately` | two knowledge nodes are not conflated; each warning carries its own node index and id |

@@ -179,8 +179,7 @@ that is useful.
   knowledge-retrieval + import + workspace; `DslImportWarning` / `COMPLETED_WITH_WARNINGS`),
   including closed issues, turned up nothing matching. #42087 has a similar symptom but is Cloud,
   single-workspace, cause unidentified.
-- No security label. An independent review of the disclosure question concluded public-first is
-  defensible: runtime retrieval re-filters by the executing tenant (`dataset_retrieval.py:2083`),
+- No security label. Public-first is defensible: runtime retrieval re-filters by the executing tenant (`dataset_retrieval.py:2083`),
   so a persisted foreign id grants nothing.
 - Once the number is known, write the absolute date into the time-budget note at the top of
   `docs/repro-log.md`.
