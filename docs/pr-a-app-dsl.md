@@ -47,17 +47,18 @@ differs:
 
 - The message carries the node title. The web client de-duplicates import warnings by message
   text (`dsl-import-warning-description.tsx`: a `Set` over `message.trim()`, then at most
-  `MAX_VISIBLE_IMPORT_WARNINGS = 3` shown), so with a fixed message N affected nodes collapse into
-  one line before the limit is even reached, and no `…` overflow marker appears: the count is not
-  truncated, it is gone. With the title, each distinctly titled node keeps its own line. This also
-  matches the other `DslImportWarning` messages in the tree, every one of which names the thing it
-  is about (skill, tool, dataset, contact) with `!r`. A node with no `title` is reported under the
-  English default label, `Knowledge Retrieval`.
+  `MAX_VISIBLE_IMPORT_WARNINGS = 3` shown), so with a fixed message these warnings alone collapse
+  to one line without ever reaching the limit or its `…` overflow marker: the count is not
+  truncated, it is gone. With the title, each distinctly titled node survives de-duplication,
+  subject to the same three-message display limit as every other warning. This also matches the
+  existing `DslImportWarning` construction sites under `services/`, every one of which names the
+  thing it is about (skill, tool, secret, contact, dataset) with `!r`. A node with no `title` is
+  reported under the English default label, `Knowledge Retrieval`.
 - The `path` reaches the element (`workflow.graph.nodes.{i}.data.dataset_ids.{j}`) rather than
   stopping at the list, matching the existing `agent_knowledge_unresolved` shape.
 
-The undecodable value itself is not echoed: it is the ciphertext the caller just uploaded and
-cannot help with reselection. The dataset name is unavailable here, since `decrypt_dataset_id`
+The undecodable value itself is not echoed: it is the value the caller just uploaded and cannot
+help with reselection. The dataset name is unavailable here, since `decrypt_dataset_id`
 performs no database access.
 
 ## Changes
@@ -74,8 +75,8 @@ performs no database access.
   `COMPLETED_WITH_WARNINGS`; and three cases that must stay silent (own-workspace ciphertext,
   plain id, empty string). Five of the eight fail if the loop is reverted.
 
-One externally visible consequence: a cross-workspace import that loses a reference now returns
-`COMPLETED_WITH_WARNINGS` instead of `COMPLETED`. Every in-tree consumer already accepts that
+One externally visible consequence: a cross-workspace import that loses a reference and would
+otherwise return `COMPLETED` now returns `COMPLETED_WITH_WARNINGS`. Every in-tree consumer already accepts that
 status: the controllers special-case only `FAILED` and `PENDING`
 (`controllers/console/app/app_import.py`, `controllers/openapi/app_dsl.py`,
 `controllers/inner_api/app/dsl.py`), `services/app/console_service.py` and
