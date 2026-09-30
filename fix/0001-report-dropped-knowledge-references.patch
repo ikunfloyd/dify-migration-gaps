@@ -1,4 +1,4 @@
-From b53810cc0e8e1070b0e0b1472de0a1d798d61df8 Mon Sep 17 00:00:00 2001
+From 02925d99dc36f95f8769aed8b44c62c5619cef99 Mon Sep 17 00:00:00 2001
 From: ikunfloyd <146411514+ikunfloyd@users.noreply.github.com>
 Date: Fri, 25 Sep 2026 21:26:49 -0700
 Subject: [PATCH] fix(api): report knowledge-retrieval dataset ids dropped on
@@ -32,9 +32,9 @@ on the canvas and the web client de-duplicates warnings by message text. The und
 itself is deliberately not echoed: both the AES key and the IV derive from the tenant id, so
 returning it would add exposure without helping reselection.
 ---
- api/services/app_dsl_service.py               |  32 ++--
- .../services/test_app_dsl_service.py          | 144 ++++++++++++++++++
- 2 files changed, 167 insertions(+), 9 deletions(-)
+ api/services/app_dsl_service.py               |  32 +++-
+ .../services/test_app_dsl_service.py          | 154 ++++++++++++++++++
+ 2 files changed, 177 insertions(+), 9 deletions(-)
 
 diff --git a/api/services/app_dsl_service.py b/api/services/app_dsl_service.py
 index 6ef368bc20..fc7082286e 100644
@@ -83,10 +83,10 @@ index 6ef368bc20..fc7082286e 100644
                  if not isinstance(raw_agent_packages, Mapping):
                      raise ValueError("agent_packages must be a mapping")
 diff --git a/api/tests/unit_tests/services/test_app_dsl_service.py b/api/tests/unit_tests/services/test_app_dsl_service.py
-index 8280c4b41b..88b0a9a266 100644
+index 8280c4b41b..4d64f2d593 100644
 --- a/api/tests/unit_tests/services/test_app_dsl_service.py
 +++ b/api/tests/unit_tests/services/test_app_dsl_service.py
-@@ -783,6 +783,150 @@ def test_create_or_update_app_removes_imported_workflow_viewport(monkeypatch: py
+@@ -783,6 +783,160 @@ def test_create_or_update_app_removes_imported_workflow_viewport(monkeypatch: py
      assert imported_graph["viewport"] == {"x": 100, "y": 200, "zoom": 1.5}
  
  
@@ -181,6 +181,16 @@ index 8280c4b41b..88b0a9a266 100644
 +    assert own != dataset_uuid
 +
 +    service, sync_draft_workflow = _knowledge_import(monkeypatch, [own])
++
++    assert sync_draft_workflow.call_args.kwargs["graph"]["nodes"][1]["data"]["dataset_ids"] == [dataset_uuid]
++    assert service._warnings == []
++
++
++def test_create_or_update_app_keeps_plaintext_knowledge_reference(monkeypatch: pytest.MonkeyPatch) -> None:
++    """A plain dataset id, as exported with encryption off, passes through and is not reported."""
++    dataset_uuid = "66666666-6666-4666-8666-666666666666"
++
++    service, sync_draft_workflow = _knowledge_import(monkeypatch, [dataset_uuid])
 +
 +    assert sync_draft_workflow.call_args.kwargs["graph"]["nodes"][1]["data"]["dataset_ids"] == [dataset_uuid]
 +    assert service._warnings == []

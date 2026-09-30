@@ -527,7 +527,7 @@ is near-verbatim from `fix/0001-*.patch` — same variable name, same empty-stri
 issue body never showed. Recorded, not contested: two PRs on one issue is normal, and the body of
 this one states the differences without speculating about their origin.
 
-The branch `kr-dataset-drop-warning` was rebased onto `origin/main` @ `e48680f32b`; the block the
+The branch `kr-dataset-drop-warning` was rebased onto `origin/main` @ `6decc78fd5`; the block the
 patch replaces is byte-identical to 1.17.1, so it applies without conflict. A second pass over the
 patch turned up two things worth fixing before pushing:
 
@@ -535,10 +535,15 @@ patch turned up two things worth fixing before pushing:
   autofix.ci would have pushed a formatting commit onto the PR, which is a poor first impression.
   The helper now takes a `nodes` argument and the file is formatted (ruff 0.16.9, `api/.ruff.toml`).
 - No test pinned the case that must *not* warn: an id encrypted under the importing workspace's own
-  tenant. Added as the second test, bringing the count to six (+144 lines, was +154 with five).
+  tenant. Added as the second test. A third pass added the other must-not-warn case, a plain
+  dataset id as exported with encryption off, which the PR summary asserts and nothing had pinned.
+  Seven tests, +154 lines — by coincidence the count the unformatted five-test version had; the
+  helper refactor gave back what the two new tests cost.
 
-Verification on the amended commit, all on real builds: the six tests pass against 1.17.1
-(`docker cp` into `difybed1171-api-1`, bed restored to pristine afterwards); `ruff check` and
+Verification on the amended commit, all on real builds: the seven tests pass against 1.17.1
+(`docker cp` into `difybed1171-api-1`, bed restored to pristine afterwards; with the loop reverted
+to the comprehension, exactly the four reporting tests fail and the three must-not-warn tests
+still pass); `ruff check` and
 `ruff format --check` clean; `pyrefly check` 1.3.1 on both files, run inside a throwaway
 `langgenius/dify-api:1.17.1` container against the `main`-based tree with both the core config and
 `tests/unit_tests/pyrefly.toml`, reports nothing beyond the `yaml` untyped-import warning that

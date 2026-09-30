@@ -41,7 +41,7 @@ collected nothing.
 
 The encryption is untouched. The import still succeeds, and the reference is neither restored nor
 existence-checked — only the silent omission is now reported, so the operator knows which node to
-rebind.
+rebind. This is the patch offered in #43062.
 
 ## Changes
 
@@ -50,16 +50,17 @@ rebind.
   `DslImportWarning` with `code="workflow_knowledge_unresolved"`, a `path` down to the element
   (`workflow.graph.nodes.{i}.data.dataset_ids.{j}`), and `details={"node_id", "node_title"}`.
   Empty strings are skipped — an empty string was never a reference to lose.
-- `api/tests/unit_tests/services/test_app_dsl_service.py` (+144): one helper and six tests next
+- `api/tests/unit_tests/services/test_app_dsl_service.py` (+154): one helper and seven tests next
   to `test_create_or_update_app_removes_imported_workflow_viewport`, which covers the viewport
   handling immediately above the same loop. They pin: a cross-workspace reference is dropped *and*
   reported with exact code/path/message/details; an id encrypted under the importing workspace's
-  own tenant still decodes and produces no warning; one warning per unresolved element; empty
-  strings produce no warning; two knowledge nodes in one graph get separate warnings with their
-  own index and id; and `_status_with_warnings` promotes the result to `COMPLETED_WITH_WARNINGS`
-  once a warning has been collected. Four of the six fail if the loop is reverted to the
-  comprehension; the own-workspace and empty-string tests pass either way by design, since they
-  pin behaviour that must not change.
+  own tenant still decodes and produces no warning; a plain dataset id (encryption off on export)
+  passes through and produces no warning; one warning per unresolved element; empty strings
+  produce no warning; two knowledge nodes in one graph get separate warnings with their own index
+  and id; and `_status_with_warnings` promotes the result to `COMPLETED_WITH_WARNINGS` once a
+  warning has been collected. Four of the seven fail if the loop is reverted to the comprehension;
+  the own-workspace, plaintext and empty-string tests pass either way by design, since they pin
+  behaviour that must not change.
 
 ## Two decisions worth reviewing
 
@@ -87,14 +88,18 @@ already accepts that status — `services/app/console_service.py`,
 ## Relation to #43083
 
 #43083 takes the same approach — explicit loop, `DslImportWarning` on the discard branch. The
-main differences here, each pinned by a test: the message carries the node title (see the dedupe
-point above); the `path` reaches the element (`…dataset_ids.{j}`) rather than stopping at the
-list, matching the existing `agent_knowledge_unresolved` shape; there is a multi-node test; and
-the warning code is `workflow_knowledge_unresolved`, following the sibling naming.
+differences, each pinned by a test here:
+
+- the message carries the node title, so the web client's dedupe keeps one line per affected node
+  instead of collapsing three nodes into one (see above);
+- the `path` reaches the element (`…dataset_ids.{j}`) rather than stopping at the list, matching
+  the existing `agent_knowledge_unresolved` shape;
+- there is a multi-node test, and the warning code is `workflow_knowledge_unresolved`, following
+  the sibling naming.
 
 ## Verification
 
-- The six new unit tests pass; the existing tests in the file are untouched.
+- The seven new unit tests pass; the existing tests in the file are untouched.
 - `ruff check` and `ruff format --check` (ruff 0.16.9, `api/.ruff.toml`) are clean on both changed
   files. `pyrefly check` (1.3.1) on both files, with the core config and the stricter
   `tests/unit_tests/pyrefly.toml`, reports nothing beyond the `yaml` untyped-import warning that is
@@ -109,9 +114,9 @@ the warning code is `workflow_knowledge_unresolved`, following the sibling namin
 - Reproduction scripts, evidence bundles and a per-claim source ledger:
   https://github.com/ikunfloyd/dify-migration-gaps
 
-Out of scope, deliberately: the RAG-pipeline importer has a structurally identical drop, but its
-response model has no `warnings` field, so reporting there needs a schema change first — a
-separate issue.
+Out of scope, deliberately: the RAG-pipeline importer has a structurally identical drop, but
+`rag_pipeline_dsl_service.py` has no `_warnings` collector and `RagPipelineImportResponse` has no
+`warnings` field, so reporting there needs a schema change first — a separate issue.
 
 ## Checklist
 
