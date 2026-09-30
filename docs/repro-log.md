@@ -548,3 +548,11 @@ pristine `main` also has. import-linter was not run (needs `uv sync`).
 
 The PR title and body live in `docs/pr-a-app-dsl.md`; `fix/0001-*.patch` is regenerated from the
 amended commit. Not pushed yet.
+
+## 2026-09-30 — PR opened
+
+[#43280](https://github.com/langgenius/dify/pull/43280), `Fixes #43062`, one commit `2693afaa87`
+on `origin/main @ 6decc78fd5`, body as in `docs/pr-a-app-dsl.md`. The reputation bot labelled it
+`review: low` within a minute, as it did the issue. Only the labeler workflows ran; the rest wait
+for a maintainer to approve workflow runs for a first-time contributor, which is the same state
+#43083 has been in since 09-28.
