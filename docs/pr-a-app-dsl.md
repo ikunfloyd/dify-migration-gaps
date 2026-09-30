@@ -46,11 +46,13 @@ node to rebind. This is the patch offered in #43062.
 differs:
 
 - The message carries the node title. The web client de-duplicates import warnings by message
-  text (`dsl-import-warning-description.tsx`: a `Set` over `message.trim()`, at most
-  `MAX_VISIBLE_IMPORT_WARNINGS = 3` shown), so with a fixed message three affected nodes collapse
-  into one line and the operator cannot tell how many nodes need rebinding. With the title, each
-  distinctly titled node keeps its own line. A node with no `title` is reported under the English
-  default label, `Knowledge Retrieval`.
+  text (`dsl-import-warning-description.tsx`: a `Set` over `message.trim()`, then at most
+  `MAX_VISIBLE_IMPORT_WARNINGS = 3` shown), so with a fixed message N affected nodes collapse into
+  one line before the limit is even reached, and no `…` overflow marker appears: the count is not
+  truncated, it is gone. With the title, each distinctly titled node keeps its own line. This also
+  matches the other `DslImportWarning` messages in the tree, every one of which names the thing it
+  is about (skill, tool, dataset, contact) with `!r`. A node with no `title` is reported under the
+  English default label, `Knowledge Retrieval`.
 - The `path` reaches the element (`workflow.graph.nodes.{i}.data.dataset_ids.{j}`) rather than
   stopping at the list, matching the existing `agent_knowledge_unresolved` shape.
 
