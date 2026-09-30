@@ -38,7 +38,8 @@ baseline rather than two.
 |---|---|
 | `docs/upstream-facts.md` | Fact ledger — each claim graded *confirmed / corrected / live / inference / unverified*, with its anchor |
 | `docs/repro-log.md` | From-zero reproduction log, timestamped, append-only |
-| `docs/issue-a-app-dsl.md` · `docs/issue-b-rag-pipeline.md` | The two upstream issues, ready to post. Neither is filed. B waits on A |
+| `docs/issue-a-app-dsl.md` · `docs/issue-b-rag-pipeline.md` | The two upstream issues. A is filed as #43062; B waits on it |
+| `docs/pr-a-app-dsl.md` | The PR for the app-DSL carrier, ready to open against `main` — body, title, and the two design decisions a reviewer will ask about |
 | `docs/issue-draft.md` | The full argument in one piece — the source behind those two, including what they omit for length |
 | `evidence/` | Raw captured artifacts from the 1.16.0 runs (HTTP responses with ids pseudonymised, artifact hashes, container state). The exported DSL itself is not captured — it carries ciphertext keyed to a tenant id |
 | `baselines/1.17.1/` | The 1.17.1 re-verification: anchor map, its own evidence bundles, bed snapshot |
