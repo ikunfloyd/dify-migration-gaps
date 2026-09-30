@@ -556,3 +556,9 @@ on `origin/main @ 6decc78fd5`, body as in `docs/pr-a-app-dsl.md`. The reputation
 `review: low` within a minute, as it did the issue. Only the labeler workflows ran; the rest wait
 for a maintainer to approve workflow runs for a first-time contributor, which is the same state
 #43083 has been in since 09-28.
+
+Later the same day: the eight tests, and the whole of `test_app_dsl_service.py`, were run on the
+`main`-based tree itself (main's test file, main's `conftest.py`, main's service) rather than the
+1.17.1 port — the tree mounted read-only into a throwaway `langgenius/dify-api:1.17.1` container
+and run with that image's interpreter. 8 passed with `-k knowledge`; the full file passes. So the
+"passes on a patched 1.17.1 build" line in the PR body is now the weaker of two facts.
