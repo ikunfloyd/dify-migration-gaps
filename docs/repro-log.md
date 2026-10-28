@@ -562,3 +562,37 @@ Later the same day: the eight tests, and the whole of `test_app_dsl_service.py`,
 1.17.1 port — the tree mounted read-only into a throwaway `langgenius/dify-api:1.17.1` container
 and run with that image's interpreter. 8 passed with `-k knowledge`; the full file passes. So the
 "passes on a patched 1.17.1 build" line in the PR body is now the weaker of two facts.
+
+## 2026-10-28 — competing PR closed in favour of #43280; rebased onto main
+
+On 2026-10-23 a maintainer (`crazywoola`, langgenius) closed
+[#43083](https://github.com/langgenius/dify/pull/43083) as a duplicate of #43280, "for the same
+topic tracked in #43062", retaining #43280 because its warning carries the affected dataset index
+and node. The closing note is explicit that this merges neither implementation and asks for review to
+continue on #43280. Still no comment or review on #43280 itself, and only the label checks have run.
+
+The same day's release, 1.18.0, merged #44165 (KnowledgeFS), which appends a `DslImportWarning`
+with code `knowledge_fs_space_unresolved` directly under the knowledge-retrieval comprehension — the
+same channel this patch reports into, for a sibling kind of unresolvable reference. That block lands
+on the lines this patch replaces, so #43280 turned `CONFLICTING` on GitHub.
+
+Rebased `kr-dataset-drop-warning` onto `origin/main @ ea5e4e9e21` (`2693afaa87` → `762f856e9a`).
+One conflict, in `app_dsl_service.py`: the old comprehension's closing `)` / `]` against the new
+KnowledgeFS block. Resolved by keeping this patch's loop and letting upstream's block follow it
+unchanged; `git range-diff` shows the patch's own lines untouched, only trailing context differs.
+The test file auto-merged. `missing_control_space_ids` returns early for a graph without KnowledgeFS
+spaces, so the existing tests need no database.
+
+Verification on the rebased tree, mounted read-only into a throwaway `langgenius/dify-api:1.18.0`
+container and run with that image's interpreter (`--entrypoint`, `-o addopts=""` to drop the
+coverage flags in `pytest.ini`): `-k knowledge` 8 passed; the whole of `test_app_dsl_service.py`
+108 passed. ruff 0.16.9 (the version pinned in `uv.lock`): check clean, both files already formatted.
+pyrefly 1.3.2 (pinned), installed with the image's system pip and pointed at the image's venv:
+the patched tree and pristine `main` report the same two diagnostics, both the `yaml` untyped-import
+warning. `fix/0001-*.patch` regenerated from the rebased commit.
+
+Pushed to the fork with `--force-with-lease` on `2693afaa87` (`+ 2693afaa87...762f856e9a`, forced
+update). GitHub re-evaluated #43280 within seconds: head `762f856e9a`, still one commit,
+`MERGEABLE` (`BLOCKED` only on the review requirement, as before). Only the two label workflows
+ran on the new head. No comment posted: the push is visible on the PR timeline, the maintainer has
+already named this PR as the one to review, and a comment would add nothing they cannot see.

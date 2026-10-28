@@ -1,4 +1,4 @@
-From 2693afaa870aab892e2aa8a808d4f583b9e9b408 Mon Sep 17 00:00:00 2001
+From 762f856e9a0c6b19ae3e4d3ec0b86f043de2cfa7 Mon Sep 17 00:00:00 2001
 From: ikunfloyd <146411514+ikunfloyd@users.noreply.github.com>
 Date: Fri, 25 Sep 2026 21:26:49 -0700
 Subject: [PATCH] fix(api): report knowledge-retrieval dataset ids dropped on
@@ -48,10 +48,10 @@ reselection.
  2 files changed, 202 insertions(+), 9 deletions(-)
 
 diff --git a/api/services/app_dsl_service.py b/api/services/app_dsl_service.py
-index 6ef368bc20..fc7082286e 100644
+index aa4d815d2f..8fd68b2daa 100644
 --- a/api/services/app_dsl_service.py
 +++ b/api/services/app_dsl_service.py
-@@ -702,18 +702,32 @@ class AppDslService:
+@@ -792,18 +792,32 @@ class AppDslService:
                  # The source canvas position should not determine the imported app's initial view.
                  graph = graph.copy()
                  graph.pop("viewport", None)
@@ -90,14 +90,14 @@ index 6ef368bc20..fc7082286e 100644
 -                            )
 -                        ]
 +                        node["data"]["dataset_ids"] = resolved_dataset_ids
-                 raw_agent_packages = data.get("agent_packages") or {}
-                 if not isinstance(raw_agent_packages, Mapping):
-                     raise ValueError("agent_packages must be a mapping")
+                 missing_knowledge_fs_spaces = missing_control_space_ids(
+                     session=self._session,
+                     tenant_id=app.tenant_id,
 diff --git a/api/tests/unit_tests/services/test_app_dsl_service.py b/api/tests/unit_tests/services/test_app_dsl_service.py
-index 8280c4b41b..ffb788f2b4 100644
+index 03fb5cecd5..29ac296fb8 100644
 --- a/api/tests/unit_tests/services/test_app_dsl_service.py
 +++ b/api/tests/unit_tests/services/test_app_dsl_service.py
-@@ -783,6 +783,185 @@ def test_create_or_update_app_removes_imported_workflow_viewport(monkeypatch: py
+@@ -992,6 +992,185 @@ def test_create_or_update_app_removes_imported_workflow_viewport(monkeypatch: py
      assert imported_graph["viewport"] == {"x": 100, "y": 200, "zoom": 1.5}
  
  
