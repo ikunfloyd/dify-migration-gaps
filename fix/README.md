@@ -3,14 +3,15 @@
 A patch for the app-DSL carrier (D1/D5), with before-and-after evidence from the same
 reproduction that established the defect.
 
-Not submitted upstream. Dify's PR template asks for an associated issue and `Fixes #<n>`, and warns
-that a PR without prior discussion may be closed (`.github/pull_request_template.md` on `main`), so
-this waits on the issue.
+Opened upstream as [#43280](https://github.com/langgenius/dify/pull/43280) on 2026-09-30, with
+`Fixes #43062`. Dify's PR template asks for an associated issue and warns that a PR without prior
+discussion may be closed (`.github/pull_request_template.md` on `main`), so the issue was filed
+first. Rebased onto `main` on 2026-10-28; see `docs/repro-log.md`.
 
 | | |
 |---|---|
 | Patch | [`0001-report-dropped-knowledge-references.patch`](0001-report-dropped-knowledge-references.patch) |
-| Applies to | `langgenius/dify` `origin/main` @ `6decc78fd5` (2026-09-30) — the branch is rebased onto it, so the patch applies cleanly; opened as [#43280](https://github.com/langgenius/dify/pull/43280) |
+| Applies to | `langgenius/dify` `origin/main` @ `ea5e4e9e21` (2026-10-28) — the PR branch was rebased onto it after 1.18.0 conflicted, so the patch applies cleanly; opened as [#43280](https://github.com/langgenius/dify/pull/43280) |
 | Size | `api/services/app_dsl_service.py` **+23 −9**; `api/tests/.../test_app_dsl_service.py` **+179** (one helper, eight tests) |
 | Scope | the app-DSL carrier only. The RAG-pipeline carrier (S4) needs a response-schema change first and is deliberately not touched here |
 

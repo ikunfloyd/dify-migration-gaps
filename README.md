@@ -39,11 +39,11 @@ baseline rather than two.
 | `docs/upstream-facts.md` | Fact ledger — each claim graded *confirmed / corrected / live / inference / unverified*, with its anchor |
 | `docs/repro-log.md` | From-zero reproduction log, timestamped, append-only |
 | `docs/issue-a-app-dsl.md` · `docs/issue-b-rag-pipeline.md` | The two upstream issues. A is filed as #43062; B waits on it |
-| `docs/pr-a-app-dsl.md` | The PR for the app-DSL carrier, ready to open against `main` — body, title, and the two design decisions a reviewer will ask about |
+| `docs/pr-a-app-dsl.md` | The PR for the app-DSL carrier as opened upstream (#43280) — body, title, and the two design decisions a reviewer will ask about |
 | `docs/issue-draft.md` | The full argument in one piece — the source behind those two, including what they omit for length |
 | `evidence/` | Raw captured artifacts from the 1.16.0 runs (HTTP responses with ids pseudonymised, artifact hashes, container state). The exported DSL itself is not captured — it carries ciphertext keyed to a tenant id |
 | `baselines/1.17.1/` | The 1.17.1 re-verification: anchor map, its own evidence bundles, bed snapshot |
-| `fix/` | A tested patch for the app-DSL carrier, with before/after evidence. Not submitted |
+| `fix/` | A tested patch for the app-DSL carrier, with before/after evidence. Open upstream as #43280 |
 | `scripts/` | Scripts that drive the reproduction, so a reader can rerun it. **Point them at a throwaway stack** |
 | `LICENSE` · `THIRD-PARTY-LICENSES.md` | MIT covers this repository's own work — the analysis, the scripts, the captured evidence. Source quoted from Dify stays under Dify's licence; `THIRD-PARTY-LICENSES.md` reproduces it and inventories every excerpt |
 
@@ -87,10 +87,12 @@ first — the ledger is authoritative, the prose is not.
 ## Status
 
 [**#43062**](https://github.com/langgenius/dify/issues/43062) was filed upstream on 2026-09-28 for
-the app-DSL carrier, carrying the patch offer. The RAG-pipeline issue is written
-([`docs/issue-b-rag-pipeline.md`](docs/issue-b-rag-pipeline.md)) but held until that one gets a
-response — the two need different-sized fixes, and filing both at once puts the small decision
-behind the large one. No patch has been submitted.
+the app-DSL carrier, carrying the patch offer. The patch in [`fix/`](fix/) followed on 2026-09-30
+as [**#43280**](https://github.com/langgenius/dify/pull/43280); it was rebased onto `main` on
+2026-10-28, after 1.18.0 conflicted with it, and is awaiting review. The RAG-pipeline issue is
+written ([`docs/issue-b-rag-pipeline.md`](docs/issue-b-rag-pipeline.md)) but held until that one
+gets a response — the two need different-sized fixes, and filing both at once puts the small
+decision behind the large one.
 
-This repository is the deliverable in its own right; an upstream contribution, if it happens at
-all, is a downstream option and is not assumed.
+This repository is the deliverable in its own right; the upstream PR is a downstream option, and
+nothing here depends on its outcome.

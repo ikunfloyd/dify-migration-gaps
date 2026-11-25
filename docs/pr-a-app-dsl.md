@@ -1,13 +1,8 @@
 # PR — app-DSL carrier
 
-Ready to open against `langgenius/dify` `main`. The branch is `kr-dataset-drop-warning` in
-`~/workspace/dify-upstream`, rebased onto current `main`. Push it to your fork, then open the PR
-with the title and body below.
-
-**When pasting: copy only what is *inside* the outer ```` ```markdown ```` fences.**
-
-Upstream's PR template is prefilled in the description box; replace it wholesale with the body
-below — the body already carries the template's checklist.
+Opened as [#43280](https://github.com/langgenius/dify/pull/43280) on 2026-09-30 from branch
+`kr-dataset-drop-warning` on the fork, and rebased onto `main` on 2026-10-28 after 1.18.0
+conflicted with it. The title and body below are the ones on the PR, unchanged since it was opened.
 
 ---
 
